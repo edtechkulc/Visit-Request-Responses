@@ -59,14 +59,24 @@
     .logo-mark svg { width:18px; height:18px; }
     .header-title { font-size:15px; font-weight:600; }
     .header-sub { font-size:12px; color:var(--text-muted); }
-    .header-right { margin-left:auto; }
+    .header-right { margin-left:auto; display:flex; align-items:center; gap:8px; }
     .source-pill { display:flex; align-items:center; gap:6px; background:var(--teal-light); border:1px solid var(--teal-mid); border-radius:20px; padding:4px 12px; font-size:11px; color:var(--teal-dark); font-weight:500; }
     .pulse { width:7px; height:7px; border-radius:50%; background:var(--teal); animation:pulse 2s infinite; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+    .refresh-btn { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); width:32px; height:32px; cursor:pointer; font-size:15px; color:var(--text-muted); display:flex; align-items:center; justify-content:center; transition:border-color .15s,color .15s; }
+    .refresh-btn:hover { border-color:var(--border-strong); color:var(--text); }
 
     /* LAYOUT */
     .container { max-width:1100px; margin:0 auto; padding:1.5rem; }
     .grid { display:grid; grid-template-columns:1fr 296px; gap:16px; align-items:start; }
+
+    /* LOADING / ERROR */
+    .status-bar { background:var(--warn-light); border:1px solid var(--warn-border); border-radius:var(--radius-md); padding:10px 14px; margin-bottom:14px; font-size:12px; color:var(--warn-text); display:flex; align-items:center; gap:8px; }
+    .status-bar.hidden { display:none; }
+    .status-bar.error { background:var(--red-light); border-color:var(--red-mid); color:var(--red); }
+    .status-bar.ok { background:var(--teal-light); border-color:var(--teal-mid); color:var(--teal-dark); }
+    .spin { display:inline-block; animation:spin 1s linear infinite; }
+    @keyframes spin { to{transform:rotate(360deg)} }
 
     /* STATS */
     .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:16px; }
@@ -111,11 +121,9 @@
     .panel { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:1rem 1.25rem; }
     .panel-title { font-size:11px; font-weight:600; color:var(--text-muted); letter-spacing:.07em; text-transform:uppercase; margin-bottom:12px; }
 
-    /* constraint notice */
     .constraint-box { background:var(--warn-light); border:1px solid var(--warn-border); border-radius:var(--radius-md); padding:10px 12px; margin-bottom:12px; font-size:12px; color:var(--warn-text); line-height:1.55; }
     .constraint-box strong { font-weight:700; display:block; margin-bottom:2px; }
 
-    /* services */
     .service-item { padding:10px 0; border-bottom:1px solid var(--border); display:flex; gap:10px; align-items:flex-start; }
     .service-item:last-child { border-bottom:none; }
     .service-icon { width:32px; height:32px; border-radius:var(--radius-sm); display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
@@ -123,7 +131,6 @@
     .service-meta { font-size:11px; color:var(--text-muted); }
     .slot-badge { display:inline-block; font-size:10px; font-weight:600; padding:1px 7px; border-radius:20px; margin-top:3px; }
 
-    /* detail */
     .detail-date-label { font-size:14px; font-weight:600; }
     .detail-count { font-size:11px; color:var(--text-muted); margin-top:1px; margin-bottom:12px; }
     .slot-section { margin-bottom:10px; }
@@ -142,6 +149,7 @@
     .conflict-alert { background:var(--red-light); border:1px solid var(--red-mid); border-radius:var(--radius-md); padding:9px 12px; font-size:12px; color:var(--red); margin-bottom:10px; line-height:1.5; }
     .conflict-alert strong { font-weight:700; display:block; margin-bottom:1px; }
     .empty-state { text-align:center; padding:2rem 0; color:var(--text-hint); font-size:13px; }
+    .last-updated { font-size:10px; color:var(--text-hint); text-align:right; margin-top:6px; }
 
     @media (max-width:768px) {
       .grid{grid-template-columns:1fr} .stats{grid-template-columns:repeat(2,1fr)}
@@ -166,17 +174,23 @@
   <div class="header-right">
     <div class="source-pill">
       <div class="pulse"></div>
-      <span>ข้อมูลจาก Google Form</span>
+      <span>ข้อมูลจาก Google Sheet</span>
     </div>
+    <button class="refresh-btn" onclick="loadData()" title="รีเฟรชข้อมูล">↻</button>
   </div>
 </header>
 
 <div class="container">
+  <!-- Status bar -->
+  <div id="status-bar" class="status-bar">
+    <span class="spin">⟳</span> <span id="status-msg">กำลังโหลดข้อมูลจาก Google Sheet…</span>
+  </div>
+
   <div class="stats">
-    <div class="stat-card"><div class="stat-label">จองทั้งหมด</div><div class="stat-value sv-teal"  id="s-total">0</div></div>
-    <div class="stat-card"><div class="stat-label">ยืนยันแล้ว</div><div class="stat-value sv-blue"  id="s-confirmed">0</div></div>
-    <div class="stat-card"><div class="stat-label">รอยืนยัน</div>  <div class="stat-value sv-amber" id="s-pending">0</div></div>
-    <div class="stat-card"><div class="stat-label">ยกเลิก</div>     <div class="stat-value sv-red"   id="s-cancelled">0</div></div>
+    <div class="stat-card"><div class="stat-label">จองทั้งหมด</div><div class="stat-value sv-teal"  id="s-total">—</div></div>
+    <div class="stat-card"><div class="stat-label">ยืนยันแล้ว</div><div class="stat-value sv-blue"  id="s-confirmed">—</div></div>
+    <div class="stat-card"><div class="stat-label">รอยืนยัน</div>  <div class="stat-value sv-amber" id="s-pending">—</div></div>
+    <div class="stat-card"><div class="stat-label">ยกเลิก</div>     <div class="stat-value sv-red"   id="s-cancelled">—</div></div>
   </div>
 
   <div class="grid">
@@ -201,6 +215,7 @@
         <div class="legend-item"><div class="legend-dot" style="background:#f7c1c1"></div>ยกเลิก</div>
         <div class="legend-conflict"><div class="legend-dot-c"></div>มีการจองทับซ้อน</div>
       </div>
+      <div class="last-updated" id="last-updated"></div>
     </div>
 
     <div class="sidebar">
@@ -212,13 +227,11 @@
 
       <div class="panel">
         <div class="panel-title">บริการนำชม</div>
-
         <div class="constraint-box">
           <strong>⚠ เงื่อนไขการจอง</strong>
           ไม่สามารถเยี่ยมชมทั้งสองสถานที่ในเวลาเดียวกันได้
           หากต้องการเยี่ยมชมทั้งคู่ ต้องจองช่วงเช้าและช่วงบ่ายแยกกัน
         </div>
-
         <div class="service-item">
           <div class="service-icon" style="background:var(--teal-light)">📚</div>
           <div>
@@ -227,7 +240,6 @@
             <span class="slot-badge" style="background:var(--teal-light);color:var(--teal-dark)">ช่วงเช้า · 09:00 – 12:00 น.</span>
           </div>
         </div>
-
         <div class="service-item">
           <div class="service-icon" style="background:var(--amber-light)">🏛️</div>
           <div>
@@ -242,20 +254,37 @@
 </div>
 
 <script>
+/* =====================================================================
+   ⚙️  CONFIG — แก้ตรงนี้ให้ตรงกับชื่อคอลัมน์ใน Google Sheet ของคุณ
+   ===================================================================== */
+const SHEET_ID = '1AqpqF5bB_goWeFpzAfFAhP2VQEI4CVh4WLV4FCaGqBs';
+
+// ชื่อคอลัมน์ใน Google Sheet (ต้องตรงทุกตัวอักษร รวมถึงตัวเล็ก-ใหญ่)
+const COL = {
+  date:    'วันที่ต้องการเยี่ยมชม',   // ค่าตัวอย่าง: "15/06/2568" หรือ "2025-06-15"
+  name:    'ชื่อ-นามสกุล / ชื่อหน่วยงาน',
+  service: 'สถานที่ที่ต้องการเยี่ยมชม', // ค่า: "สำนักหอสมุด" หรือ "หอประวัติ มก."
+  pax:     'จำนวนผู้เข้าชม (คน)',
+  status:  'สถานะ',                      // ค่า: "confirmed" / "pending" / "cancelled"
+};
+
+// mapping ชื่อบริการในชีต → slot (morning/afternoon)
+const SERVICE_SLOT = {
+  'สำนักหอสมุด':   { slot:'morning',   time:'09:00–12:00', label:'สำนักหอสมุด' },
+  'หอประวัติ มก.': { slot:'afternoon', time:'13:00–16:00', label:'หอประวัติ มก.' },
+  'หอประวัติมหาวิทยาลัยเกษตรศาสตร์': { slot:'afternoon', time:'13:00–16:00', label:'หอประวัติ มก.' },
+};
+
+// mapping สถานะภาษาไทย → key
+const STATUS_NORM = {
+  'ยืนยัน':'confirmed','ยืนยันแล้ว':'confirmed','confirmed':'confirmed','approve':'confirmed','อนุมัติ':'confirmed',
+  'รอยืนยัน':'pending','pending':'pending','รอ':'pending','รอดำเนินการ':'pending',
+  'ยกเลิก':'cancelled','cancelled':'cancelled','ปฏิเสธ':'cancelled','reject':'cancelled',
+};
+/* ===================================================================== */
+
 const MONTHS_TH = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน',
                    'กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
-
-/* Each service is pinned to its own time slot.
-   The business rule: only ONE booking per slot per day is valid.
-   A second booking on the same slot = conflict → flagged red. */
-const SERVICES = {
-  library: { label:'สำนักหอสมุด',        slot:'morning',   time:'09:00', slotLabel:'ช่วงเช้า · 09:00 – 12:00 น.' },
-  history: { label:'หอประวัติ มก.',       slot:'afternoon', time:'13:00', slotLabel:'ช่วงบ่าย · 13:00 – 16:00 น.' }
-};
-const SVC_KEYS  = Object.keys(SERVICES);
-const NAMES     = ['สมชาย ใจดี','Alice Johnson','Tanaka Hiroshi','ปิยะ รักเที่ยว','Marco Rossi','Sarah Williams','นภา สุขสันต์','David Chen','อรุณ วงศ์ดี','Emma Müller','สุดา แสงเทียน','Raj Patel'];
-const PAXS      = [2,3,4,6,2,5,3,8,4,2,10,3];
-const STATUSES  = ['confirmed','confirmed','confirmed','pending','pending','cancelled'];
 const STATUS_TH = { confirmed:'ยืนยัน', pending:'รอยืนยัน', cancelled:'ยกเลิก' };
 
 let today    = new Date();
@@ -264,44 +293,129 @@ let curMonth = today.getMonth();
 let selected = null;
 let bookings = {};
 
-function rng(seed) {
-  let s = seed;
-  return () => { s=(s*1664525+1013904223)&0xffffffff; return (s>>>0)/0xffffffff; };
+/* ── Parse CSV (handles quoted fields) ── */
+function parseCSV(text) {
+  const rows = [];
+  const lines = text.split(/\r?\n/);
+  lines.forEach(line => {
+    if (!line.trim()) return;
+    const cols = [];
+    let cur = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === '"') { if (inQ && line[i+1]==='"') { cur+='"'; i++; } else inQ=!inQ; }
+      else if (c === ',' && !inQ) { cols.push(cur); cur = ''; }
+      else cur += c;
+    }
+    cols.push(cur);
+    rows.push(cols);
+  });
+  return rows;
 }
 
-function generateBookings() {
-  bookings = {};
-  const r = rng(202504);
-  const now = new Date();
-  for (let mo = -1; mo <= 2; mo++) {
-    const ref  = new Date(now.getFullYear(), now.getMonth()+mo, 1);
-    const days = new Date(ref.getFullYear(), ref.getMonth()+1, 0).getDate();
-    for (let day = 1; day <= days; day++) {
-      if (r() > 0.58) continue;
-      const key  = `${ref.getFullYear()}-${ref.getMonth()}-${day}`;
-      const list = [];
-      const occupied = {};   /* slot -> true once filled */
-      const count = Math.floor(r()*3)+1;
-      for (let i = 0; i < count; i++) {
-        const k   = SVC_KEYS[Math.floor(r()*SVC_KEYS.length)];
-        const svc = SERVICES[k];
-        /* conflict = this slot already has a booking */
-        const conflict = !!occupied[svc.slot];
-        list.push({
-          name: NAMES[Math.floor(r()*NAMES.length)],
-          label: svc.label, slot: svc.slot,
-          slotLabel: svc.slotLabel, time: svc.time,
-          status: STATUSES[Math.floor(r()*STATUSES.length)],
-          pax: PAXS[Math.floor(r()*PAXS.length)],
-          conflict
-        });
-        if (!conflict) occupied[svc.slot] = true;
-      }
-      bookings[key] = list;
-    }
+/* ── Parse various date formats → { y, m, d } (m is 0-indexed) ── */
+function parseDate(raw) {
+  if (!raw) return null;
+  raw = raw.trim();
+
+  // ISO: 2025-06-15
+  let m = raw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (m) return { y:+m[1], m:+m[2]-1, d:+m[3] };
+
+  // d/m/yyyy or d/m/yy (Buddhist or CE)
+  m = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+  if (m) {
+    let y = +m[3];
+    if (y > 2400) y -= 543;   // Buddhist year
+    if (y < 100) y += 2000;
+    return { y, m:+m[2]-1, d:+m[1] };
+  }
+
+  // Try native Date parse as fallback
+  const d = new Date(raw);
+  if (!isNaN(d)) return { y:d.getFullYear(), m:d.getMonth(), d:d.getDate() };
+  return null;
+}
+
+/* ── Load & process Google Sheet ── */
+async function loadData() {
+  setStatus('loading', 'กำลังโหลดข้อมูลจาก Google Sheet…');
+  try {
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&cachebust=${Date.now()}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const text = await res.text();
+    processCSV(text);
+    const now = new Date();
+    document.getElementById('last-updated').textContent =
+      `อัปเดตล่าสุด: ${now.toLocaleTimeString('th-TH')}`;
+    setStatus('ok', `โหลดข้อมูลสำเร็จ`);
+    setTimeout(()=>setStatus('hidden'), 2500);
+  } catch(e) {
+    setStatus('error',
+      `⚠ ไม่สามารถโหลดข้อมูลได้ — กรุณาตรวจสอบว่า Sheet ถูก "Publish to web" แล้ว (${e.message})`);
+    console.error(e);
   }
 }
 
+function setStatus(type, msg) {
+  const bar = document.getElementById('status-bar');
+  bar.className = 'status-bar' + (type==='hidden'?' hidden':type==='error'?' error':type==='ok'?' ok':'');
+  if (msg) document.getElementById('status-msg').textContent = msg;
+}
+
+function processCSV(text) {
+  const rows = parseCSV(text);
+  if (rows.length < 2) return;
+
+  const headers = rows[0].map(h => h.trim());
+  const idx = {};
+  Object.entries(COL).forEach(([k,colName]) => {
+    const i = headers.findIndex(h => h === colName);
+    idx[k] = i; // -1 = not found
+  });
+
+  bookings = {};
+  rows.slice(1).forEach(row => {
+    const get = k => (idx[k] >= 0 && row[idx[k]] !== undefined) ? row[idx[k]].trim() : '';
+
+    const dateRaw = get('date');
+    const parsed  = parseDate(dateRaw);
+    if (!parsed) return;
+
+    const svcRaw  = get('service');
+    const svcInfo = SERVICE_SLOT[svcRaw] || SERVICE_SLOT[Object.keys(SERVICE_SLOT).find(k=>svcRaw.includes(k))] || { slot:'morning', time:'09:00', label: svcRaw };
+    const statusRaw = get('status').toLowerCase();
+    const status = STATUS_NORM[statusRaw] || STATUS_NORM[get('status')] || 'pending';
+
+    const key = `${parsed.y}-${parsed.m}-${parsed.d}`;
+    if (!bookings[key]) bookings[key] = [];
+
+    bookings[key].push({
+      name:     get('name') || '(ไม่ระบุ)',
+      label:    svcInfo.label,
+      slot:     svcInfo.slot,
+      time:     svcInfo.time,
+      status,
+      pax:      get('pax') || '—',
+      conflict: false,
+    });
+  });
+
+  // flag conflicts (>1 booking in same slot on same day)
+  Object.values(bookings).forEach(list => {
+    const occupied = {};
+    list.forEach(b => {
+      if (occupied[b.slot]) { b.conflict = true; }
+      else occupied[b.slot] = true;
+    });
+  });
+
+  renderCal();
+  updateStats();
+}
+
+/* ── Calendar rendering ── */
 function renderCal() {
   document.getElementById('cal-title').textContent = `${MONTHS_TH[curMonth]} ${curYear+543}`;
   const grid = document.getElementById('days-grid');
@@ -313,7 +427,6 @@ function renderCal() {
   for (let d=1;d<=daysInMon;d++) grid.appendChild(makeDay(curYear,curMonth,d,false));
   const rem=(first+daysInMon)%7===0?0:7-(first+daysInMon)%7;
   for (let d=1;d<=rem;d++) grid.appendChild(makeDay(curYear,curMonth+1,d,true));
-  updateStats();
 }
 
 function norm(y,m) {
@@ -356,7 +469,7 @@ function showDetail(key,d,m,y) {
   if (!bks.length){list.innerHTML='<div class="empty-state">ไม่มีการจองในวันนี้</div>';return;}
 
   const slots={morning:[],afternoon:[]};
-  bks.forEach(b=>slots[b.slot].push(b));
+  bks.forEach(b=>slots[b.slot]?slots[b.slot].push(b):slots.morning.push(b));
   const hasConflict=bks.some(b=>b.conflict);
   let html='';
 
@@ -369,7 +482,7 @@ function showDetail(key,d,m,y) {
 
   [['morning','ช่วงเช้า · 09:00 – 12:00 น.'],['afternoon','ช่วงบ่าย · 13:00 – 16:00 น.']].forEach(([slot,title])=>{
     const items=slots[slot];
-    if (!items.length) return;
+    if (!items||!items.length) return;
     const isConflict=items.length>1;
     html+=`<div class="slot-section">
       <div class="slot-header">
@@ -377,8 +490,8 @@ function showDetail(key,d,m,y) {
         ${isConflict?'<span style="font-size:10px;color:var(--red);font-weight:700">ทับซ้อน</span>':''}
         <div class="slot-line"></div>
       </div>`;
-    items.forEach((b,idx)=>{
-      const bg=isConflict&&idx>0?'background:var(--red-light);border-radius:6px;padding:0 8px;':'';
+    items.forEach((b,i2)=>{
+      const bg=isConflict&&i2>0?'background:var(--red-light);border-radius:6px;padding:0 8px;':'';
       html+=`<div class="booking-item" style="${bg}">
         <div class="booking-row">
           <div class="booking-name">${b.name}</div>
@@ -410,8 +523,9 @@ function changeMonth(delta) {
   renderCal();
 }
 
-generateBookings();
+// Init
 renderCal();
+loadData();
 </script>
 </body>
 </html>
