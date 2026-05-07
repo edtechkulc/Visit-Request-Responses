@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ปฏิทินการจองบริการนำชม</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f7f6f2;
+      --surface: #ffffff;
+      --surface-2: #f0ede8;
+      --border: #e2ddd6;
+      --border-strong: #c8c2b8;
+      --text: #1a1916;
+      --text-muted: #6b6760;
+      --text-hint: #9e9a94;
+      --teal-light: #e1f5ee;
+      --teal-mid: #9fe1cb;
+      --teal: #1d9e75;
+      --teal-dark: #085041;
+      --amber-light: #faeeda;
+      --amber-mid: #fac775;
+      --amber: #854f0b;
+      --red-light: #fcebeb;
+      --red-mid: #f7c1c1;
+      --red: #a32d2d;
+      --blue-light: #e6f1fb;
+      --blue: #185fa5;
+      --warn-light: #fff8e6;
+      --warn-border: #f5c518;
+      --warn-text: #7a5200;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #18171a; --surface: #222128; --surface-2: #2c2b31;
+        --border: #38363e; --border-strong: #504d58;
+        --text: #f0eee9; --text-muted: #9e9a94; --text-hint: #6b6760;
+        --teal-light: #04342c; --teal-mid: #085041; --teal: #5dcaa5; --teal-dark: #9fe1cb;
+        --amber-light: #412402; --amber-mid: #854f0b; --amber: #fac775;
+        --red-light: #501313; --red-mid: #791f1f; --red: #f09595;
+        --blue-light: #042c53; --blue: #85b7eb;
+        --warn-light: #2e2400; --warn-border: #a07800; --warn-text: #fac775;
+      }
+    }
+
+    body { background:var(--bg); color:var(--text); font-family:'Sarabun','Noto Sans Thai',sans-serif; font-size:15px; line-height:1.6; min-height:100vh; }
+
+    /* HEADER */
+    header { background:var(--surface); border-bottom:1px solid var(--border); padding:0 2rem; display:flex; align-items:center; gap:14px; height:58px; position:sticky; top:0; z-index:10; }
+    .logo-mark { width:32px; height:32px; background:var(--teal); border-radius:var(--radius-sm); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .logo-mark svg { width:18px; height:18px; }
+    .header-title { font-size:15px; font-weight:600; }
+    .header-sub { font-size:12px; color:var(--text-muted); }
+    .header-right { margin-left:auto; }
+    .source-pill { display:flex; align-items:center; gap:6px; background:var(--teal-light); border:1px solid var(--teal-mid); border-radius:20px; padding:4px 12px; font-size:11px; color:var(--teal-dark); font-weight:500; }
+    .pulse { width:7px; height:7px; border-radius:50%; background:var(--teal); animation:pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+
+    /* LAYOUT */
+    .container { max-width:1100px; margin:0 auto; padding:1.5rem; }
+    .grid { display:grid; grid-template-columns:1fr 296px; gap:16px; align-items:start; }
+
+    /* STATS */
+    .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:16px; }
+    .stat-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); padding:14px 16px; }
+    .stat-label { font-size:11px; color:var(--text-muted); letter-spacing:.05em; text-transform:uppercase; margin-bottom:4px; }
+    .stat-value { font-size:26px; font-weight:700; line-height:1; }
+    .sv-teal{color:var(--teal)} .sv-blue{color:var(--blue)} .sv-amber{color:var(--amber)} .sv-red{color:var(--red)}
+
+    /* CALENDAR */
+    .cal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+    .cal-month { font-size:16px; font-weight:600; }
+    .cal-nav { display:flex; gap:6px; }
+    .nav-btn { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); width:32px; height:32px; cursor:pointer; font-size:16px; color:var(--text-muted); display:flex; align-items:center; justify-content:center; transition:border-color .15s,color .15s; }
+    .nav-btn:hover { border-color:var(--border-strong); color:var(--text); }
+    .calendar { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; }
+    .weekdays { display:grid; grid-template-columns:repeat(7,1fr); background:var(--surface-2); border-bottom:1px solid var(--border); }
+    .weekday { font-size:11px; font-weight:600; color:var(--text-muted); text-align:center; padding:9px 0; letter-spacing:.06em; }
+    .days { display:grid; grid-template-columns:repeat(7,1fr); }
+    .day { min-height:90px; border-right:1px solid var(--border); border-bottom:1px solid var(--border); padding:7px 6px; cursor:pointer; transition:background .12s; position:relative; }
+    .day:nth-child(7n) { border-right:none; }
+    .day:hover { background:var(--surface-2); }
+    .day.other-month { opacity:.28; pointer-events:none; }
+    .day.today .day-num { background:var(--teal); color:#fff; border-radius:50%; }
+    .day.selected { background:var(--teal-light); }
+    .day.selected:hover { background:var(--teal-mid); }
+    .day-num { width:24px; height:24px; font-size:12px; font-weight:600; display:flex; align-items:center; justify-content:center; margin-bottom:4px; color:var(--text); }
+    .day.other-month .day-num { color:var(--text-hint); }
+    .day.has-conflict::after { content:''; position:absolute; top:5px; right:6px; width:6px; height:6px; border-radius:50%; background:#e24b4a; }
+    .chip { font-size:10px; border-radius:3px; padding:2px 5px; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:500; }
+    .chip-confirmed{background:var(--teal-light);color:var(--teal-dark)}
+    .chip-pending{background:var(--amber-light);color:var(--amber)}
+    .chip-cancelled{background:var(--red-light);color:var(--red)}
+    .chip-more { font-size:10px; color:var(--text-hint); padding:1px 4px; }
+    .legend { display:flex; gap:14px; flex-wrap:wrap; margin-top:10px; }
+    .legend-item { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--text-muted); }
+    .legend-dot { width:9px; height:9px; border-radius:2px; }
+    .legend-conflict { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--red); }
+    .legend-dot-c { width:8px; height:8px; border-radius:50%; background:#e24b4a; }
+
+    /* SIDEBAR */
+    .sidebar { display:flex; flex-direction:column; gap:12px; }
+    .panel { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:1rem 1.25rem; }
+    .panel-title { font-size:11px; font-weight:600; color:var(--text-muted); letter-spacing:.07em; text-transform:uppercase; margin-bottom:12px; }
+
+    /* constraint notice */
+    .constraint-box { background:var(--warn-light); border:1px solid var(--warn-border); border-radius:var(--radius-md); padding:10px 12px; margin-bottom:12px; font-size:12px; color:var(--warn-text); line-height:1.55; }
+    .constraint-box strong { font-weight:700; display:block; margin-bottom:2px; }
+
+    /* services */
+    .service-item { padding:10px 0; border-bottom:1px solid var(--border); display:flex; gap:10px; align-items:flex-start; }
+    .service-item:last-child { border-bottom:none; }
+    .service-icon { width:32px; height:32px; border-radius:var(--radius-sm); display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+    .service-name { font-size:13px; font-weight:600; color:var(--text); margin-bottom:2px; line-height:1.35; }
+    .service-meta { font-size:11px; color:var(--text-muted); }
+    .slot-badge { display:inline-block; font-size:10px; font-weight:600; padding:1px 7px; border-radius:20px; margin-top:3px; }
+
+    /* detail */
+    .detail-date-label { font-size:14px; font-weight:600; }
+    .detail-count { font-size:11px; color:var(--text-muted); margin-top:1px; margin-bottom:12px; }
+    .slot-section { margin-bottom:10px; }
+    .slot-header { font-size:11px; font-weight:600; color:var(--text-muted); letter-spacing:.05em; display:flex; align-items:center; gap:6px; margin-bottom:6px; }
+    .slot-line { flex:1; height:1px; background:var(--border); }
+    .booking-item { padding:8px 0; border-bottom:1px solid var(--border); }
+    .booking-item:last-child { border-bottom:none; }
+    .booking-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:2px; }
+    .booking-name { font-size:13px; font-weight:600; color:var(--text); }
+    .badge { font-size:10px; font-weight:600; padding:2px 8px; border-radius:20px; }
+    .badge-confirmed{background:var(--teal-light);color:var(--teal-dark)}
+    .badge-pending{background:var(--amber-light);color:var(--amber)}
+    .badge-cancelled{background:var(--red-light);color:var(--red)}
+    .booking-meta { font-size:11px; color:var(--text-muted); }
+    .dot-sep { margin:0 4px; }
+    .conflict-alert { background:var(--red-light); border:1px solid var(--red-mid); border-radius:var(--radius-md); padding:9px 12px; font-size:12px; color:var(--red); margin-bottom:10px; line-height:1.5; }
+    .conflict-alert strong { font-weight:700; display:block; margin-bottom:1px; }
+    .empty-state { text-align:center; padding:2rem 0; color:var(--text-hint); font-size:13px; }
+
+    @media (max-width:768px) {
+      .grid{grid-template-columns:1fr} .stats{grid-template-columns:repeat(2,1fr)}
+      header{padding:0 1rem} .container{padding:1rem}
+      .source-pill span{display:none}
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo-mark">
+    <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round">
+      <path d="M8 2v3M16 2v3M3 8h18M5 4h14a2 2 0 012 2v13a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z"/>
+      <path d="M8 13h4m-4 4h8"/>
+    </svg>
+  </div>
+  <div>
+    <div class="header-title">ปฏิทินการจองบริการนำชม</div>
+    <div class="header-sub">มหาวิทยาลัยเกษตรศาสตร์</div>
+  </div>
+  <div class="header-right">
+    <div class="source-pill">
+      <div class="pulse"></div>
+      <span>ข้อมูลจาก Google Form</span>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+  <div class="stats">
+    <div class="stat-card"><div class="stat-label">จองทั้งหมด</div><div class="stat-value sv-teal"  id="s-total">0</div></div>
+    <div class="stat-card"><div class="stat-label">ยืนยันแล้ว</div><div class="stat-value sv-blue"  id="s-confirmed">0</div></div>
+    <div class="stat-card"><div class="stat-label">รอยืนยัน</div>  <div class="stat-value sv-amber" id="s-pending">0</div></div>
+    <div class="stat-card"><div class="stat-label">ยกเลิก</div>     <div class="stat-value sv-red"   id="s-cancelled">0</div></div>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="cal-header">
+        <div class="cal-month" id="cal-title"></div>
+        <div class="cal-nav">
+          <button class="nav-btn" onclick="changeMonth(-1)">&#8249;</button>
+          <button class="nav-btn" onclick="changeMonth(1)">&#8250;</button>
+        </div>
+      </div>
+      <div class="calendar">
+        <div class="weekdays">
+          <div class="weekday">อา</div><div class="weekday">จ</div><div class="weekday">อ</div>
+          <div class="weekday">พ</div><div class="weekday">พฤ</div><div class="weekday">ศ</div><div class="weekday">ส</div>
+        </div>
+        <div class="days" id="days-grid"></div>
+      </div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#9fe1cb"></div>ยืนยันแล้ว</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#fac775"></div>รอยืนยัน</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#f7c1c1"></div>ยกเลิก</div>
+        <div class="legend-conflict"><div class="legend-dot-c"></div>มีการจองทับซ้อน</div>
+      </div>
+    </div>
+
+    <div class="sidebar">
+      <div class="panel">
+        <div id="detail-date-label" class="detail-date-label">เลือกวันเพื่อดูรายละเอียด</div>
+        <div id="detail-count" class="detail-count"></div>
+        <div id="detail-list"><div class="empty-state">กรุณาเลือกวันที่ในปฏิทิน</div></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">บริการนำชม</div>
+
+        <div class="constraint-box">
+          <strong>⚠ เงื่อนไขการจอง</strong>
+          ไม่สามารถเยี่ยมชมทั้งสองสถานที่ในเวลาเดียวกันได้
+          หากต้องการเยี่ยมชมทั้งคู่ ต้องจองช่วงเช้าและช่วงบ่ายแยกกัน
+        </div>
+
+        <div class="service-item">
+          <div class="service-icon" style="background:var(--teal-light)">📚</div>
+          <div>
+            <div class="service-name">สำนักหอสมุด</div>
+            <div class="service-meta">สูงสุด 30 คน</div>
+            <span class="slot-badge" style="background:var(--teal-light);color:var(--teal-dark)">ช่วงเช้า · 09:00 – 12:00 น.</span>
+          </div>
+        </div>
+
+        <div class="service-item">
+          <div class="service-icon" style="background:var(--amber-light)">🏛️</div>
+          <div>
+            <div class="service-name">หอประวัติมหาวิทยาลัยเกษตรศาสตร์</div>
+            <div class="service-meta">สูงสุด 20 คน</div>
+            <span class="slot-badge" style="background:var(--amber-light);color:var(--amber)">ช่วงบ่าย · 13:00 – 16:00 น.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const MONTHS_TH = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน',
+                   'กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+
+/* Each service is pinned to its own time slot.
+   The business rule: only ONE booking per slot per day is valid.
+   A second booking on the same slot = conflict → flagged red. */
+const SERVICES = {
+  library: { label:'สำนักหอสมุด',        slot:'morning',   time:'09:00', slotLabel:'ช่วงเช้า · 09:00 – 12:00 น.' },
+  history: { label:'หอประวัติ มก.',       slot:'afternoon', time:'13:00', slotLabel:'ช่วงบ่าย · 13:00 – 16:00 น.' }
+};
+const SVC_KEYS  = Object.keys(SERVICES);
+const NAMES     = ['สมชาย ใจดี','Alice Johnson','Tanaka Hiroshi','ปิยะ รักเที่ยว','Marco Rossi','Sarah Williams','นภา สุขสันต์','David Chen','อรุณ วงศ์ดี','Emma Müller','สุดา แสงเทียน','Raj Patel'];
+const PAXS      = [2,3,4,6,2,5,3,8,4,2,10,3];
+const STATUSES  = ['confirmed','confirmed','confirmed','pending','pending','cancelled'];
+const STATUS_TH = { confirmed:'ยืนยัน', pending:'รอยืนยัน', cancelled:'ยกเลิก' };
+
+let today    = new Date();
+let curYear  = today.getFullYear();
+let curMonth = today.getMonth();
+let selected = null;
+let bookings = {};
+
+function rng(seed) {
+  let s = seed;
+  return () => { s=(s*1664525+1013904223)&0xffffffff; return (s>>>0)/0xffffffff; };
+}
+
+function generateBookings() {
+  bookings = {};
+  const r = rng(202504);
+  const now = new Date();
+  for (let mo = -1; mo <= 2; mo++) {
+    const ref  = new Date(now.getFullYear(), now.getMonth()+mo, 1);
+    const days = new Date(ref.getFullYear(), ref.getMonth()+1, 0).getDate();
+    for (let day = 1; day <= days; day++) {
+      if (r() > 0.58) continue;
+      const key  = `${ref.getFullYear()}-${ref.getMonth()}-${day}`;
+      const list = [];
+      const occupied = {};   /* slot -> true once filled */
+      const count = Math.floor(r()*3)+1;
+      for (let i = 0; i < count; i++) {
+        const k   = SVC_KEYS[Math.floor(r()*SVC_KEYS.length)];
+        const svc = SERVICES[k];
+        /* conflict = this slot already has a booking */
+        const conflict = !!occupied[svc.slot];
+        list.push({
+          name: NAMES[Math.floor(r()*NAMES.length)],
+          label: svc.label, slot: svc.slot,
+          slotLabel: svc.slotLabel, time: svc.time,
+          status: STATUSES[Math.floor(r()*STATUSES.length)],
+          pax: PAXS[Math.floor(r()*PAXS.length)],
+          conflict
+        });
+        if (!conflict) occupied[svc.slot] = true;
+      }
+      bookings[key] = list;
+    }
+  }
+}
+
+function renderCal() {
+  document.getElementById('cal-title').textContent = `${MONTHS_TH[curMonth]} ${curYear+543}`;
+  const grid = document.getElementById('days-grid');
+  grid.innerHTML = '';
+  const first     = new Date(curYear,curMonth,1).getDay();
+  const daysInMon = new Date(curYear,curMonth+1,0).getDate();
+  const prevDays  = new Date(curYear,curMonth,0).getDate();
+  for (let i=0;i<first;i++) grid.appendChild(makeDay(curYear,curMonth-1,prevDays-first+1+i,true));
+  for (let d=1;d<=daysInMon;d++) grid.appendChild(makeDay(curYear,curMonth,d,false));
+  const rem=(first+daysInMon)%7===0?0:7-(first+daysInMon)%7;
+  for (let d=1;d<=rem;d++) grid.appendChild(makeDay(curYear,curMonth+1,d,true));
+  updateStats();
+}
+
+function norm(y,m) {
+  if (m<0)  return {y:y-1,m:11};
+  if (m>11) return {y:y+1,m:0};
+  return {y,m};
+}
+
+function makeDay(y,m,d,other) {
+  const {y:ry,m:rm} = norm(y,m);
+  const cell = document.createElement('div');
+  cell.className = 'day'+(other?' other-month':'');
+  if (!other && d===today.getDate() && curMonth===today.getMonth() && curYear===today.getFullYear())
+    cell.classList.add('today');
+  if (selected&&!other&&selected.y===ry&&selected.m===rm&&selected.d===d)
+    cell.classList.add('selected');
+  const numEl=document.createElement('div'); numEl.className='day-num'; numEl.textContent=d; cell.appendChild(numEl);
+  if (!other) {
+    const key=`${ry}-${rm}-${d}`;
+    const bks=bookings[key]||[];
+    if (bks.some(b=>b.conflict)) cell.classList.add('has-conflict');
+    bks.slice(0,2).forEach(b=>{
+      const chip=document.createElement('div');
+      chip.className=`chip chip-${b.conflict?'cancelled':b.status}`;
+      chip.textContent=b.label;
+      cell.appendChild(chip);
+    });
+    if (bks.length>2){const m2=document.createElement('div');m2.className='chip-more';m2.textContent=`+${bks.length-2} อื่นๆ`;cell.appendChild(m2);}
+    cell.addEventListener('click',()=>{selected={y:ry,m:rm,d};renderCal();showDetail(key,d,rm,ry);});
+  }
+  return cell;
+}
+
+function showDetail(key,d,m,y) {
+  const bks  = bookings[key]||[];
+  const safeM= m<0?11:m>11?0:m;
+  document.getElementById('detail-date-label').textContent=`${d} ${MONTHS_TH[safeM]} ${y+543}`;
+  document.getElementById('detail-count').textContent=bks.length?`${bks.length} รายการจอง`:'';
+  const list=document.getElementById('detail-list');
+  if (!bks.length){list.innerHTML='<div class="empty-state">ไม่มีการจองในวันนี้</div>';return;}
+
+  const slots={morning:[],afternoon:[]};
+  bks.forEach(b=>slots[b.slot].push(b));
+  const hasConflict=bks.some(b=>b.conflict);
+  let html='';
+
+  if (hasConflict) {
+    html+=`<div class="conflict-alert">
+      <strong>พบการจองทับซ้อน</strong>
+      มีการจองในช่วงเวลาเดียวกันมากกว่า 1 รายการ — กรุณาตรวจสอบและแก้ไข
+    </div>`;
+  }
+
+  [['morning','ช่วงเช้า · 09:00 – 12:00 น.'],['afternoon','ช่วงบ่าย · 13:00 – 16:00 น.']].forEach(([slot,title])=>{
+    const items=slots[slot];
+    if (!items.length) return;
+    const isConflict=items.length>1;
+    html+=`<div class="slot-section">
+      <div class="slot-header">
+        <span>${title}</span>
+        ${isConflict?'<span style="font-size:10px;color:var(--red);font-weight:700">ทับซ้อน</span>':''}
+        <div class="slot-line"></div>
+      </div>`;
+    items.forEach((b,idx)=>{
+      const bg=isConflict&&idx>0?'background:var(--red-light);border-radius:6px;padding:0 8px;':'';
+      html+=`<div class="booking-item" style="${bg}">
+        <div class="booking-row">
+          <div class="booking-name">${b.name}</div>
+          <span class="badge badge-${b.conflict?'cancelled':b.status}">${b.conflict?'ทับซ้อน':STATUS_TH[b.status]}</span>
+        </div>
+        <div class="booking-meta">${b.label}<span class="dot-sep">·</span>${b.time} น.<span class="dot-sep">·</span>${b.pax} คน</div>
+      </div>`;
+    });
+    html+=`</div>`;
+  });
+  list.innerHTML=html;
+}
+
+function updateStats() {
+  const all=Object.values(bookings).flat();
+  document.getElementById('s-total').textContent    =all.length;
+  document.getElementById('s-confirmed').textContent=all.filter(b=>b.status==='confirmed').length;
+  document.getElementById('s-pending').textContent  =all.filter(b=>b.status==='pending').length;
+  document.getElementById('s-cancelled').textContent=all.filter(b=>b.status==='cancelled').length;
+}
+
+function changeMonth(delta) {
+  curMonth+=delta;
+  if (curMonth>11){curMonth=0;curYear++;} if (curMonth<0){curMonth=11;curYear--;}
+  selected=null;
+  document.getElementById('detail-date-label').textContent='เลือกวันเพื่อดูรายละเอียด';
+  document.getElementById('detail-count').textContent='';
+  document.getElementById('detail-list').innerHTML='<div class="empty-state">กรุณาเลือกวันที่ในปฏิทิน</div>';
+  renderCal();
+}
+
+generateBookings();
+renderCal();
+</script>
+</body>
+</html>
