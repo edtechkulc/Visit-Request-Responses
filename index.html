@@ -69,7 +69,7 @@
     /* MODAL */
     .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:100; display:flex; align-items:center; justify-content:center; padding:1rem; opacity:0; pointer-events:none; transition:opacity .18s; }
     .modal-backdrop.show { opacity:1; pointer-events:all; }
-    .modal { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); width:100%; max-width:380px; box-shadow:0 20px 60px rgba(0,0,0,.18); transform:translateY(12px); transition:transform .18s; }
+    .modal { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); width:100%; max-width:380px; box-shadow:0 20px 60px rgba(0,0,0,.18); transform:translateY(12px); transition:transform .18s; overflow:hidden; }
     .modal-backdrop.show .modal { transform:translateY(0); }
     .modal-header { padding:1.1rem 1.25rem .75rem; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px; }
     .modal-icon { width:34px; height:34px; border-radius:var(--radius-sm); background:var(--red-light); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
@@ -94,9 +94,9 @@
     .btn-danger:hover:not(:disabled) { opacity:.85; }
     .btn-loading { display:flex; align-items:center; gap:7px; }
     .btn-spinner { width:13px; height:13px; border:2px solid rgba(255,255,255,.35); border-top-color:#fff; border-radius:50%; animation:spin .7s linear infinite; flex-shrink:0; }
-    .modal-progress { height:3px; background:var(--border); border-radius:0 0 var(--radius-lg) var(--radius-lg); overflow:hidden; opacity:0; transition:opacity .2s; }
+    .modal-progress { height:5px; background:var(--border); overflow:hidden; opacity:0; transition:opacity .2s; }
     .modal-progress.active { opacity:1; }
-    .modal-progress-bar { height:100%; width:0%; background:var(--red); border-radius:3px; transition:width .3s ease; }
+    .modal-progress-bar { height:100%; width:0%; background:var(--red); transition:width .3s ease; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
 
     /* LAYOUT */
@@ -217,6 +217,9 @@
 <!-- CLEAR MODAL -->
 <div class="modal-backdrop" id="clear-modal" onclick="handleBackdropClick(event)">
   <div class="modal">
+    <div class="modal-progress" id="modal-progress">
+      <div class="modal-progress-bar" id="modal-progress-bar"></div>
+    </div>
     <div class="modal-header">
       <div class="modal-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -243,9 +246,6 @@
     <div class="modal-footer">
       <button class="btn btn-ghost" id="btn-cancel-clear" onclick="closeClearModal()">ยกเลิก</button>
       <button class="btn btn-danger" id="btn-confirm-clear" onclick="confirmClear()">ล้างข้อมูล</button>
-    </div>
-    <div class="modal-progress" id="modal-progress">
-      <div class="modal-progress-bar" id="modal-progress-bar"></div>
     </div>
   </div>
 </div>
