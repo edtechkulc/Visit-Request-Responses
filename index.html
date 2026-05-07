@@ -321,7 +321,7 @@
    ===================================================================== */
 const SHEET_ID   = '1AqpqF5bB_goWeFpzAfFAhP2VQEI4CVh4WLV4FCaGqBs';
 // URL ของ Apps Script Web App (ได้จากการ Deploy → Copy URL)
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxoFCwVd-4fJ1T_ock5qtFB70EScgH_EEjB8Lec6nDhReZFr86VbNXlAH_dGnMkpBko/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbycPSbhDLDGi5BrWxbalVSBRQMzDmoGwusVHlXSSpgwP6fUc1tkEdJN1al9ohhwan50/exec';
 
 // ชื่อคอลัมน์ใน Google Sheet (ต้องตรงทุกตัวอักษร รวมถึงตัวเล็ก-ใหญ่)
 const COL = {
@@ -632,7 +632,6 @@ async function confirmClear() {
   try {
     const res = await fetch(SCRIPT_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'clear', pin }),
     });
 
