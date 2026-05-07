@@ -306,7 +306,7 @@
           <div class="service-icon" style="background:var(--teal-light)">📚</div>
           <div>
             <div class="service-name">สำนักหอสมุด</div>
-            <div class="service-meta">สูงสุด 100 คน</div>
+            <div class="service-meta">สูงสุด 30 คน</div>
             <span class="slot-badge" style="background:var(--teal-light);color:var(--teal-dark)">ช่วงเช้า · 09:00 – 12:00 น.</span>
           </div>
         </div>
@@ -314,7 +314,7 @@
           <div class="service-icon" style="background:var(--amber-light)">🏛️</div>
           <div>
             <div class="service-name">หอประวัติมหาวิทยาลัยเกษตรศาสตร์</div>
-            <div class="service-meta">สูงสุด 100 คน</div>
+            <div class="service-meta">สูงสุด 20 คน</div>
             <span class="slot-badge" style="background:var(--amber-light);color:var(--amber)">ช่วงบ่าย · 13:00 – 16:00 น.</span>
           </div>
         </div>
@@ -331,13 +331,20 @@ const SHEET_ID   = '1AqpqF5bB_goWeFpzAfFAhP2VQEI4CVh4WLV4FCaGqBs';
 // URL ของ Apps Script Web App (ได้จากการ Deploy → Copy URL)
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwguQEUcYyq3mqLzT5xXqyyZtz_yS1bn_RHWSFdqG_cWudJi2FsrZIK3Ah7nCrA2sIS/exec';
 
-// ชื่อคอลัมน์ใน Google Sheet (ต้องตรงทุกตัวอักษร รวมถึงตัวเล็ก-ใหญ่)
+// ชื่อคอลัมน์ใน Google Sheet (ตรงกับหัวคอลัมน์จริง)
+// สำหรับคอลัมน์ที่ชื่อซ้ำ ให้ใช้หมายเลข index (A=0, B=1, C=2, ...)
 const COL = {
-  date:    'วันที่ต้องการเยี่ยมชม',   // ค่าตัวอย่าง: "15/06/2568" หรือ "2025-06-15"
-  name:    'ชื่อ-นามสกุล / ชื่อหน่วยงาน',
-  service: 'สถานที่ที่ต้องการเยี่ยมชม', // ค่า: "สำนักหอสมุด" หรือ "หอประวัติ มก."
-  pax:     'จำนวนผู้เข้าชม (คน)',
-  status:  'สถานะ',                      // ค่า: "confirmed" / "pending" / "cancelled"
+  date:    1,                                    // B: วันที่ขอเข้าเยี่ยมชม ศึกษาดูงาน (อันแรก)
+  time:    2,                                    // C: เวลาที่ขอเข้าเยี่ยมชม ศึกษา ดูงาน
+  name:    'หน่วยงานต้นเรื่อง',                  // D
+  org:     'หน่วยงานที่เข้าเยี่ยมชม',            // E
+  country: 'ประเทศ',                             // F
+  pax:     'จำนวนผู้เยี่ยมชม',                   // G
+  lang:    'ภาษาสำหรับการบรรยาย',               // H
+  green:   'เป็นการเยี่ยมชมด้านห้องสมุดสีเขียวหรือไม่', // I
+  note:    'รายละเอียดอื่นๆ (ถ้ามี)',             // J
+  service: 'สถานที่เยี่ยมชม ศึกษาดูงาน',         // K
+  status:  'สถานะ',                              // ถ้าไม่มีคอลัมน์นี้ จะ default = pending
 };
 
 // mapping ชื่อบริการในชีต → slot (morning/afternoon)
@@ -441,45 +448,56 @@ function processCSV(text) {
   if (rows.length < 2) return;
 
   const headers = rows[0].map(h => h.trim());
+
+  // idx รองรับทั้ง index ตัวเลข และชื่อคอลัมน์
   const idx = {};
-  Object.entries(COL).forEach(([k,colName]) => {
-    const i = headers.findIndex(h => h === colName);
-    idx[k] = i; // -1 = not found
+  Object.entries(COL).forEach(([k, col]) => {
+    if (typeof col === 'number') {
+      idx[k] = col; // ใช้ index ตรงๆ
+    } else {
+      idx[k] = headers.findIndex(h => h === col); // ค้นหาจากชื่อ
+    }
   });
 
   bookings = {};
   rows.slice(1).forEach(row => {
-    const get = k => (idx[k] >= 0 && row[idx[k]] !== undefined) ? row[idx[k]].trim() : '';
+    const get = k => (idx[k] !== undefined && idx[k] >= 0 && row[idx[k]] !== undefined)
+      ? row[idx[k]].trim() : '';
 
     const dateRaw = get('date');
     const parsed  = parseDate(dateRaw);
     if (!parsed) return;
 
     const svcRaw  = get('service');
-    const svcInfo = SERVICE_SLOT[svcRaw] || SERVICE_SLOT[Object.keys(SERVICE_SLOT).find(k=>svcRaw.includes(k))] || { slot:'morning', time:'09:00', label: svcRaw };
+    const svcKey  = Object.keys(SERVICE_SLOT).find(k => svcRaw.includes(k));
+    const svcInfo = svcKey ? SERVICE_SLOT[svcKey] : { slot:'morning', time:'09:00–12:00', label: svcRaw || '(ไม่ระบุ)' };
+
     const statusRaw = get('status').toLowerCase();
     const status = STATUS_NORM[statusRaw] || STATUS_NORM[get('status')] || 'pending';
+
+    const nameVal = get('name') || get('org') || '(ไม่ระบุ)';
 
     const key = `${parsed.y}-${parsed.m}-${parsed.d}`;
     if (!bookings[key]) bookings[key] = [];
 
     bookings[key].push({
-      name:     get('name') || '(ไม่ระบุ)',
+      name:     nameVal,
       label:    svcInfo.label,
       slot:     svcInfo.slot,
       time:     svcInfo.time,
       status,
       pax:      get('pax') || '—',
+      lang:     get('lang') || '',
       conflict: false,
     });
   });
 
-  // flag conflicts (>1 booking in same slot on same day)
+  // flag conflicts
   Object.values(bookings).forEach(list => {
     const occupied = {};
     list.forEach(b => {
-      if (occupied[b.slot]) { b.conflict = true; }
-      else occupied[b.slot] = true;
+      if (b.slot && occupied[b.slot]) { b.conflict = true; }
+      else if (b.slot) occupied[b.slot] = true;
     });
   });
 
@@ -569,7 +587,7 @@ function showDetail(key,d,m,y) {
           <div class="booking-name">${b.name}</div>
           <span class="badge badge-${b.conflict?'cancelled':b.status}">${b.conflict?'ทับซ้อน':STATUS_TH[b.status]}</span>
         </div>
-        <div class="booking-meta">${b.label}<span class="dot-sep">·</span>${b.time} น.<span class="dot-sep">·</span>${b.pax} คน</div>
+        <div class="booking-meta">${b.label}<span class="dot-sep">·</span>${b.time} น.<span class="dot-sep">·</span>${b.pax} คน${b.lang ? `<span class="dot-sep">·</span>${b.lang}` : ''}</div>
       </div>`;
     });
     html+=`</div>`;
