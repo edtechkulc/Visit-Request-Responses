@@ -92,6 +92,11 @@
     .btn-ghost:hover:not(:disabled) { border-color:var(--border-strong); color:var(--text); }
     .btn-danger { background:var(--red); color:#fff; }
     .btn-danger:hover:not(:disabled) { opacity:.85; }
+    .btn-loading { display:flex; align-items:center; gap:7px; }
+    .btn-spinner { width:13px; height:13px; border:2px solid rgba(255,255,255,.35); border-top-color:#fff; border-radius:50%; animation:spin .7s linear infinite; flex-shrink:0; }
+    .modal-progress { height:3px; background:var(--border); border-radius:0 0 var(--radius-lg) var(--radius-lg); overflow:hidden; opacity:0; transition:opacity .2s; }
+    .modal-progress.active { opacity:1; }
+    .modal-progress-bar { height:100%; width:0%; background:var(--red); border-radius:3px; transition:width .3s ease; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
 
     /* LAYOUT */
@@ -236,8 +241,11 @@
       <div class="pin-error" id="pin-error"></div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeClearModal()">ยกเลิก</button>
+      <button class="btn btn-ghost" id="btn-cancel-clear" onclick="closeClearModal()">ยกเลิก</button>
       <button class="btn btn-danger" id="btn-confirm-clear" onclick="confirmClear()">ล้างข้อมูล</button>
+    </div>
+    <div class="modal-progress" id="modal-progress">
+      <div class="modal-progress-bar" id="modal-progress-bar"></div>
     </div>
   </div>
 </div>
@@ -598,6 +606,10 @@ function openClearModal() {
 
 function closeClearModal() {
   document.getElementById('clear-modal').classList.remove('show');
+  document.getElementById('pin-input').disabled = false;
+  document.getElementById('modal-progress').classList.remove('active');
+  const bar = document.getElementById('modal-progress-bar');
+  bar.style.transition = 'none'; bar.style.width = '0%';
 }
 
 function handleBackdropClick(e) {
@@ -615,19 +627,28 @@ function handlePinKey(e) {
 
 async function confirmClear() {
   const pin = document.getElementById('pin-input').value.trim();
-  if (!pin) {
-    showPinError('กรุณากรอก PIN');
-    return;
-  }
+  if (!pin) { showPinError('กรุณากรอก PIN'); return; }
 
   if (!SCRIPT_URL || SCRIPT_URL === 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
     showPinError('ยังไม่ได้ตั้งค่า SCRIPT_URL ใน config');
     return;
   }
 
-  const btn = document.getElementById('btn-confirm-clear');
-  btn.disabled = true;
-  btn.textContent = 'กำลังล้าง…';
+  // ── Loading state ──
+  const btn    = document.getElementById('btn-confirm-clear');
+  const cancel = document.getElementById('btn-cancel-clear');
+  const prog   = document.getElementById('modal-progress');
+  const bar    = document.getElementById('modal-progress-bar');
+
+  btn.disabled    = true;
+  cancel.disabled = true;
+  btn.innerHTML   = '<span class="btn-loading"><span class="btn-spinner"></span>กำลังล้างข้อมูล…</span>';
+  document.getElementById('pin-input').disabled = true;
+
+  // Animate progress bar: 0→75% ขณะรอ, จะเด้งไป 100% เมื่อเสร็จ
+  prog.classList.add('active');
+  bar.style.width = '0%';
+  setTimeout(() => { bar.style.transition = 'width 3.5s ease-out'; bar.style.width = '75%'; }, 50);
 
   try {
     const res = await fetch(SCRIPT_URL, {
@@ -639,13 +660,18 @@ async function confirmClear() {
     try { data = await res.json(); }
     catch (_) { throw new Error('ไม่สามารถอ่าน response ได้'); }
 
+    // Complete progress bar
+    bar.style.transition = 'width .3s ease';
+    bar.style.width = '100%';
+    await new Promise(r => setTimeout(r, 300));
+
     if (data.status === 'ok') {
       closeClearModal();
       setStatus('ok', `✓ ${data.message}`);
-      // Reload data to reflect empty sheet
       bookings = {};
       renderCal();
       updateStats();
+      selected = null;
       document.getElementById('detail-date-label').textContent = 'เลือกวันเพื่อดูรายละเอียด';
       document.getElementById('detail-count').textContent = '';
       document.getElementById('detail-list').innerHTML = '<div class="empty-state">กรุณาเลือกวันที่ในปฏิทิน</div>';
@@ -657,8 +683,16 @@ async function confirmClear() {
   } catch (err) {
     showPinError(`เชื่อมต่อไม่สำเร็จ: ${err.message}`);
   } finally {
-    btn.disabled = false;
+    // Reset button & progress
+    btn.disabled    = false;
+    cancel.disabled = false;
     btn.textContent = 'ล้างข้อมูล';
+    document.getElementById('pin-input').disabled = false;
+    setTimeout(() => {
+      prog.classList.remove('active');
+      bar.style.transition = 'none';
+      bar.style.width = '0%';
+    }, 400);
   }
 }
 
