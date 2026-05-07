@@ -10,18 +10,20 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #f7f6f2;
+      --bg: #f5f7f5;
       --surface: #ffffff;
-      --surface-2: #f0ede8;
-      --border: #e2ddd6;
-      --border-strong: #c8c2b8;
+      --surface-2: #eef3ee;
+      --border: #d6e4d6;
+      --border-strong: #b3ccb3;
       --text: #1a1916;
-      --text-muted: #6b6760;
-      --text-hint: #9e9a94;
-      --teal-light: #e1f5ee;
-      --teal-mid: #9fe1cb;
-      --teal: #1d9e75;
-      --teal-dark: #085041;
+      --text-muted: #5a6b5a;
+      --text-hint: #93a293;
+      /* KU Green palette */
+      --teal-light: #e6f2ec;
+      --teal-mid: #85bc9e;
+      --teal: #006633;
+      --teal-dark: #004422;
+      /* Status colours — kept as-is */
       --amber-light: #faeeda;
       --amber-mid: #fac775;
       --amber: #854f0b;
@@ -40,10 +42,10 @@
 
     @media (prefers-color-scheme: dark) {
       :root {
-        --bg: #18171a; --surface: #222128; --surface-2: #2c2b31;
-        --border: #38363e; --border-strong: #504d58;
-        --text: #f0eee9; --text-muted: #9e9a94; --text-hint: #6b6760;
-        --teal-light: #04342c; --teal-mid: #085041; --teal: #5dcaa5; --teal-dark: #9fe1cb;
+        --bg: #111a13; --surface: #1a261c; --surface-2: #223025;
+        --border: #2e4232; --border-strong: #3d5c42;
+        --text: #e8f0e8; --text-muted: #93a293; --text-hint: #5a6b5a;
+        --teal-light: #0a2e18; --teal-mid: #1a5c33; --teal: #4cad72; --teal-dark: #85d4a8;
         --amber-light: #412402; --amber-mid: #854f0b; --amber: #fac775;
         --red-light: #501313; --red-mid: #791f1f; --red: #f09595;
         --blue-light: #042c53; --blue: #85b7eb;
@@ -54,17 +56,12 @@
     body { background:var(--bg); color:var(--text); font-family:'Sarabun','Noto Sans Thai',sans-serif; font-size:15px; line-height:1.6; min-height:100vh; }
 
     /* HEADER */
-    header { background:var(--surface); border-bottom:1px solid var(--border); padding:0 2rem; display:flex; align-items:center; gap:14px; height:58px; position:sticky; top:0; z-index:10; }
-    .logo-mark { width:32px; height:32px; background:var(--teal); border-radius:var(--radius-sm); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    header { background:var(--teal); border-bottom:1px solid var(--teal-dark); padding:0 2rem; display:flex; align-items:center; gap:14px; height:58px; position:sticky; top:0; z-index:10; }
+    .logo-mark { width:32px; height:32px; background:rgba(255,255,255,0.18); border-radius:var(--radius-sm); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
     .logo-mark svg { width:18px; height:18px; }
-    .header-title { font-size:15px; font-weight:600; }
-    .header-sub { font-size:12px; color:var(--text-muted); }
-    .header-right { margin-left:auto; display:flex; align-items:center; gap:8px; }
-    .source-pill { display:flex; align-items:center; gap:6px; background:var(--teal-light); border:1px solid var(--teal-mid); border-radius:20px; padding:4px 12px; font-size:11px; color:var(--teal-dark); font-weight:500; }
-    .pulse { width:7px; height:7px; border-radius:50%; background:var(--teal); animation:pulse 2s infinite; }
+    .header-title { font-size:15px; font-weight:600; color:#fff; }
+    .header-sub { font-size:12px; color:rgba(255,255,255,0.72); }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
-    .refresh-btn { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); width:32px; height:32px; cursor:pointer; font-size:15px; color:var(--text-muted); display:flex; align-items:center; justify-content:center; transition:border-color .15s,color .15s; }
-    .refresh-btn:hover { border-color:var(--border-strong); color:var(--text); }
 
     /* LAYOUT */
     .container { max-width:1100px; margin:0 auto; padding:1.5rem; }
@@ -99,7 +96,7 @@
     .day:nth-child(7n) { border-right:none; }
     .day:hover { background:var(--surface-2); }
     .day.other-month { opacity:.28; pointer-events:none; }
-    .day.today .day-num { background:var(--teal); color:#fff; border-radius:50%; }
+    .day.today .day-num { background:var(--teal); color:#fff; border-radius:50%; box-shadow:0 0 0 2px var(--teal-mid); }
     .day.selected { background:var(--teal-light); }
     .day.selected:hover { background:var(--teal-mid); }
     .day-num { width:24px; height:24px; font-size:12px; font-weight:600; display:flex; align-items:center; justify-content:center; margin-bottom:4px; color:var(--text); }
@@ -170,13 +167,6 @@
   <div>
     <div class="header-title">ปฏิทินการจองบริการนำชม</div>
     <div class="header-sub">มหาวิทยาลัยเกษตรศาสตร์</div>
-  </div>
-  <div class="header-right">
-    <div class="source-pill">
-      <div class="pulse"></div>
-      <span>ข้อมูลจาก Google Sheet</span>
-    </div>
-    <button class="refresh-btn" onclick="loadData()" title="รีเฟรชข้อมูล">↻</button>
   </div>
 </header>
 
