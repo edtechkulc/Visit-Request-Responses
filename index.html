@@ -61,6 +61,37 @@
     .logo-mark svg { width:18px; height:18px; }
     .header-title { font-size:15px; font-weight:600; color:#fff; }
     .header-sub { font-size:12px; color:rgba(255,255,255,0.72); }
+    .header-right { margin-left:auto; }
+    .btn-clear-header { display:flex; align-items:center; gap:6px; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.28); border-radius:var(--radius-sm); padding:6px 13px; font-size:12px; font-weight:600; color:#fff; cursor:pointer; font-family:inherit; transition:background .15s,border-color .15s; }
+    .btn-clear-header:hover { background:rgba(255,255,255,0.22); border-color:rgba(255,255,255,0.5); }
+    .btn-clear-header svg { width:13px; height:13px; flex-shrink:0; }
+
+    /* MODAL */
+    .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:100; display:flex; align-items:center; justify-content:center; padding:1rem; opacity:0; pointer-events:none; transition:opacity .18s; }
+    .modal-backdrop.show { opacity:1; pointer-events:all; }
+    .modal { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); width:100%; max-width:380px; box-shadow:0 20px 60px rgba(0,0,0,.18); transform:translateY(12px); transition:transform .18s; }
+    .modal-backdrop.show .modal { transform:translateY(0); }
+    .modal-header { padding:1.1rem 1.25rem .75rem; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px; }
+    .modal-icon { width:34px; height:34px; border-radius:var(--radius-sm); background:var(--red-light); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .modal-icon svg { width:17px; height:17px; color:var(--red); }
+    .modal-title { font-size:14px; font-weight:700; }
+    .modal-sub { font-size:11px; color:var(--text-muted); margin-top:1px; }
+    .modal-body { padding:1rem 1.25rem; }
+    .modal-warn { background:var(--red-light); border:1px solid var(--red-mid); border-radius:var(--radius-md); padding:9px 12px; font-size:12px; color:var(--red); margin-bottom:14px; line-height:1.55; }
+    .modal-warn strong { font-weight:700; display:block; margin-bottom:2px; }
+    .pin-label { font-size:12px; font-weight:600; color:var(--text-muted); margin-bottom:6px; display:block; }
+    .pin-input { width:100%; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--surface-2); color:var(--text); font-size:20px; font-weight:700; letter-spacing:.35em; padding:10px 14px; text-align:center; font-family:monospace; outline:none; transition:border-color .15s; }
+    .pin-input:focus { border-color:var(--teal); }
+    .pin-input.shake { animation:shake .35s; }
+    @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 60%{transform:translateX(6px)} }
+    .pin-error { font-size:11px; color:var(--red); margin-top:5px; min-height:16px; }
+    .modal-footer { padding:.75rem 1.25rem 1.1rem; display:flex; gap:8px; justify-content:flex-end; }
+    .btn { border-radius:var(--radius-sm); padding:8px 18px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; border:1px solid transparent; transition:opacity .15s,background .15s; }
+    .btn:disabled { opacity:.5; cursor:not-allowed; }
+    .btn-ghost { background:transparent; border-color:var(--border); color:var(--text-muted); }
+    .btn-ghost:hover:not(:disabled) { border-color:var(--border-strong); color:var(--text); }
+    .btn-danger { background:var(--red); color:#fff; }
+    .btn-danger:hover:not(:disabled) { opacity:.85; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
 
     /* LAYOUT */
@@ -168,7 +199,48 @@
     <div class="header-title">ปฏิทินการจองบริการนำชม</div>
     <div class="header-sub">มหาวิทยาลัยเกษตรศาสตร์</div>
   </div>
+  <div class="header-right">
+    <button class="btn-clear-header" onclick="openClearModal()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
+      </svg>
+      ล้างข้อมูล
+    </button>
+  </div>
 </header>
+
+<!-- CLEAR MODAL -->
+<div class="modal-backdrop" id="clear-modal" onclick="handleBackdropClick(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+      </div>
+      <div>
+        <div class="modal-title">ล้างข้อมูลการจองทั้งหมด</div>
+        <div class="modal-sub">ดำเนินการนี้ไม่สามารถย้อนกลับได้</div>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="modal-warn">
+        <strong>⚠ คำเตือน</strong>
+        ข้อมูลการจองทุกรายการใน Google Sheet จะถูกลบออกถาวร
+        แถวหัวตาราง (header) จะยังคงอยู่
+      </div>
+      <label class="pin-label" for="pin-input">กรอก PIN เพื่อยืนยัน</label>
+      <input class="pin-input" id="pin-input" type="password" maxlength="8"
+             placeholder="••••" autocomplete="off"
+             oninput="clearPinError()" onkeydown="handlePinKey(event)" />
+      <div class="pin-error" id="pin-error"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeClearModal()">ยกเลิก</button>
+      <button class="btn btn-danger" id="btn-confirm-clear" onclick="confirmClear()">ล้างข้อมูล</button>
+    </div>
+  </div>
+</div>
 
 <div class="container">
   <!-- Status bar -->
@@ -247,7 +319,9 @@
 /* =====================================================================
    ⚙️  CONFIG — แก้ตรงนี้ให้ตรงกับชื่อคอลัมน์ใน Google Sheet ของคุณ
    ===================================================================== */
-const SHEET_ID = '1AqpqF5bB_goWeFpzAfFAhP2VQEI4CVh4WLV4FCaGqBs';
+const SHEET_ID   = '1AqpqF5bB_goWeFpzAfFAhP2VQEI4CVh4WLV4FCaGqBs';
+// URL ของ Apps Script Web App (ได้จากการ Deploy → Copy URL)
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxoFCwVd-4fJ1T_ock5qtFB70EScgH_EEjB8Lec6nDhReZFr86VbNXlAH_dGnMkpBko/exec';
 
 // ชื่อคอลัมน์ใน Google Sheet (ต้องตรงทุกตัวอักษร รวมถึงตัวเล็ก-ใหญ่)
 const COL = {
@@ -511,6 +585,92 @@ function changeMonth(delta) {
   document.getElementById('detail-count').textContent='';
   document.getElementById('detail-list').innerHTML='<div class="empty-state">กรุณาเลือกวันที่ในปฏิทิน</div>';
   renderCal();
+}
+
+/* ── Clear Data Modal ── */
+function openClearModal() {
+  document.getElementById('pin-input').value = '';
+  document.getElementById('pin-error').textContent = '';
+  document.getElementById('btn-confirm-clear').disabled = false;
+  document.getElementById('clear-modal').classList.add('show');
+  setTimeout(() => document.getElementById('pin-input').focus(), 180);
+}
+
+function closeClearModal() {
+  document.getElementById('clear-modal').classList.remove('show');
+}
+
+function handleBackdropClick(e) {
+  if (e.target === document.getElementById('clear-modal')) closeClearModal();
+}
+
+function clearPinError() {
+  document.getElementById('pin-error').textContent = '';
+}
+
+function handlePinKey(e) {
+  if (e.key === 'Enter') confirmClear();
+  if (e.key === 'Escape') closeClearModal();
+}
+
+async function confirmClear() {
+  const pin = document.getElementById('pin-input').value.trim();
+  if (!pin) {
+    showPinError('กรุณากรอก PIN');
+    return;
+  }
+
+  if (!SCRIPT_URL || SCRIPT_URL === 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
+    showPinError('ยังไม่ได้ตั้งค่า SCRIPT_URL ใน config');
+    return;
+  }
+
+  const btn = document.getElementById('btn-confirm-clear');
+  btn.disabled = true;
+  btn.textContent = 'กำลังล้าง…';
+
+  try {
+    const res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'clear', pin }),
+    });
+
+    let data;
+    try { data = await res.json(); }
+    catch (_) { throw new Error('ไม่สามารถอ่าน response ได้'); }
+
+    if (data.status === 'ok') {
+      closeClearModal();
+      setStatus('ok', `✓ ${data.message}`);
+      // Reload data to reflect empty sheet
+      bookings = {};
+      renderCal();
+      updateStats();
+      document.getElementById('detail-date-label').textContent = 'เลือกวันเพื่อดูรายละเอียด';
+      document.getElementById('detail-count').textContent = '';
+      document.getElementById('detail-list').innerHTML = '<div class="empty-state">กรุณาเลือกวันที่ในปฏิทิน</div>';
+      document.getElementById('last-updated').textContent = '';
+      setTimeout(() => setStatus('hidden'), 3000);
+    } else {
+      showPinError(data.message || 'เกิดข้อผิดพลาด');
+    }
+  } catch (err) {
+    showPinError(`เชื่อมต่อไม่สำเร็จ: ${err.message}`);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'ล้างข้อมูล';
+  }
+}
+
+function showPinError(msg) {
+  const el = document.getElementById('pin-error');
+  el.textContent = msg;
+  const input = document.getElementById('pin-input');
+  input.classList.remove('shake');
+  void input.offsetWidth; // reflow to restart animation
+  input.classList.add('shake');
+  setTimeout(() => input.classList.remove('shake'), 400);
 }
 
 // Init
