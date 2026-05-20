@@ -71,8 +71,11 @@
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
 
     /* ── LAYOUT ── */
-    .container { max-width:1100px; margin:0 auto; padding:1.5rem; }
-    .grid { display:grid; grid-template-columns:1fr 304px; gap:16px; align-items:start; }
+    .container { width:100%; padding:1.2rem 1.5rem; }
+    .grid { display:grid; grid-template-columns:1fr 316px; gap:16px; align-items:start; }
+    .sidebar { position:sticky; top:70px; max-height:calc(100vh - 82px); overflow-y:auto; scrollbar-width:thin; }
+    .sidebar::-webkit-scrollbar { width:4px; }
+    .sidebar::-webkit-scrollbar-thumb { background:var(--border-strong); border-radius:4px; }
 
     /* ── STATS ── */
     .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:16px; }
@@ -137,8 +140,9 @@
     .constraint-box.hours { background:var(--teal-light); border:1px solid var(--teal-mid); color:var(--teal-dark); }
     .constraint-box.warn  { background:var(--warn-light);  border:1px solid var(--warn-border); color:var(--warn-text); }
     .constraint-box strong { font-weight:700; display:block; margin-bottom:2px; }
-    .contact-row { display:flex; align-items:center; gap:6px; margin-top:6px; background:rgba(0,0,0,.04); border-radius:var(--radius-sm); padding:6px 8px; }
-    .contact-row a { color:inherit; font-weight:600; text-decoration:none; }
+    .contact-row { display:flex; flex-direction:column; gap:3px; margin-top:6px; background:rgba(0,0,0,.04); border-radius:var(--radius-sm); padding:7px 10px; }
+    .contact-name { font-weight:600; font-size:12px; }
+    .contact-row a { color:inherit; font-weight:600; text-decoration:none; font-size:12px; }
     .contact-row a:hover { text-decoration:underline; }
 
     /* service list */
@@ -196,6 +200,7 @@
       .grid{grid-template-columns:1fr} .stats{grid-template-columns:repeat(2,1fr)}
       header{padding:0 1rem} .container{padding:1rem}
       .source-pill span{display:none}
+      .sidebar{position:static;max-height:none;}
     }
   </style>
 </head>
@@ -282,8 +287,7 @@
           <strong>📞 ต้องการเยี่ยมชมนอกเวลาทำการ?</strong>
           กรุณาติดต่อล่วงหน้าที่
           <div class="contact-row">
-            <span>👩‍💼 คุณสุภัทรา นวชินกุล</span>
-            <span>·</span>
+            <span class="contact-name">👩‍💼 คุณสุภัทรา นวชินกุล</span>
             <a href="tel:0816271027">📱 081-627-1027</a>
           </div>
         </div>
@@ -293,7 +297,7 @@
           <div class="service-icon" style="background:var(--teal-light)">📚</div>
           <div>
             <div class="service-name">สำนักหอสมุด</div>
-            <div class="service-meta">สูงสุด 50 คน</div>
+            <div class="service-meta">สูงสุด 30 คน</div>
             <span class="slot-badge" style="background:var(--teal-light);color:var(--teal-dark)">08:30 – 12:00 น.</span>
           </div>
         </div>
@@ -301,7 +305,7 @@
           <div class="service-icon" style="background:var(--amber-light)">🏛️</div>
           <div>
             <div class="service-name">หอประวัติมหาวิทยาลัยเกษตรศาสตร์</div>
-            <div class="service-meta">สูงสุด 50 คน</div>
+            <div class="service-meta">สูงสุด 20 คน</div>
             <span class="slot-badge" style="background:var(--amber-light);color:var(--amber)">13:00 – 16:30 น.</span>
           </div>
         </div>
