@@ -57,7 +57,7 @@
       }
     }
 
-    body { background:var(--bg); color:var(--text); font-family:'Sarabun','Noto Sans Thai',sans-serif; font-size:15px; line-height:1.6; min-height:100vh; }
+    body { background:var(--bg); color:var(--text); font-family:'Sarabun','Noto Sans Thai',sans-serif; font-size:15px; line-height:1.6; height:100vh; overflow:hidden; display:flex; flex-direction:column; }
 
     /* ── HEADER ── */
     header { background:var(--surface); border-bottom:1px solid var(--border); padding:0 2rem; display:flex; align-items:center; gap:14px; height:58px; position:sticky; top:0; z-index:10; }
@@ -71,14 +71,17 @@
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
 
     /* ── LAYOUT ── */
-    .container { width:100%; padding:1.2rem 1.5rem; }
-    .grid { display:grid; grid-template-columns:1fr 316px; gap:16px; align-items:start; }
-    .sidebar { position:sticky; top:70px; max-height:calc(100vh - 82px); overflow-y:auto; scrollbar-width:thin; }
+    .container { width:100%; padding:0.9rem 1.3rem; flex:1 1 auto; min-height:0; display:flex; flex-direction:column; overflow:hidden; }
+    .grid { display:grid; grid-template-columns:1fr 316px; gap:16px; align-items:stretch; flex:1 1 auto; min-height:0; }
+    .cal-col { display:flex; flex-direction:column; min-height:0; }
+    .cal-col .calendar { flex:1 1 auto; min-height:0; display:flex; flex-direction:column; }
+    .cal-col .days { flex:1 1 auto; min-height:0; grid-auto-rows:1fr; }
+    .sidebar { min-height:0; overflow-y:auto; scrollbar-width:thin; }
     .sidebar::-webkit-scrollbar { width:4px; }
     .sidebar::-webkit-scrollbar-thumb { background:var(--border-strong); border-radius:4px; }
 
     /* ── INFO BAR (full width, below calendar) ── */
-    .info-bar { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-top:18px; align-items:stretch; }
+    .info-bar { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-top:12px; align-items:stretch; flex:0 0 auto; }
     .info-col { margin:0; height:100%; }
     .constraint-box.info-col { margin-bottom:0; }
     .consec-card.info-col { margin-top:0; }
@@ -88,14 +91,14 @@
     @media (max-width:600px){ .info-bar{ grid-template-columns:1fr; } }
 
     /* ── STATS ── */
-    .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:16px; }
-    .stat-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); padding:14px 16px; }
-    .stat-label { font-size:11px; color:var(--text-muted); letter-spacing:.05em; text-transform:uppercase; margin-bottom:4px; }
-    .stat-value { font-size:26px; font-weight:700; line-height:1; }
+    .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:12px; flex:0 0 auto; }
+    .stat-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); padding:10px 16px; }
+    .stat-label { font-size:11px; color:var(--text-muted); letter-spacing:.05em; text-transform:uppercase; margin-bottom:3px; }
+    .stat-value { font-size:24px; font-weight:700; line-height:1; }
     .sv-teal{color:var(--teal)} .sv-blue{color:var(--blue)} .sv-amber{color:var(--amber)} .sv-red{color:var(--red)}
 
     /* ── CALENDAR ── */
-    .cal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+    .cal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; flex:0 0 auto; }
     .cal-month { font-size:16px; font-weight:600; }
     .cal-nav { display:flex; gap:6px; }
     .nav-btn { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); width:32px; height:32px; cursor:pointer; font-size:16px; color:var(--text-muted); display:flex; align-items:center; justify-content:center; transition:border-color .15s,color .15s; }
@@ -107,7 +110,7 @@
     .weekday.we { color:var(--closed-text); }
 
     .days { display:grid; grid-template-columns:repeat(7,1fr); }
-    .day { min-height:100px; border-right:1px solid var(--border); border-bottom:1px solid var(--border); padding:7px 6px; cursor:pointer; transition:background .12s; position:relative; }
+    .day { min-height:0; overflow:hidden; border-right:1px solid var(--border); border-bottom:1px solid var(--border); padding:6px 6px; cursor:pointer; transition:background .12s; position:relative; }
     .day:nth-child(7n) { border-right:none; }
     .day:hover:not(.closed):not(.other-month) { background:var(--surface-2); }
     .day.other-month { opacity:.25; pointer-events:none; }
@@ -134,7 +137,7 @@
     .chip-consec    { background:var(--purple-light); color:var(--purple); }
     .chip-more { font-size:10px; color:var(--text-hint); padding:1px 4px; }
 
-    .legend { display:flex; gap:12px; flex-wrap:wrap; margin-top:10px; align-items:center; }
+    .legend { display:flex; gap:12px; flex-wrap:wrap; margin-top:8px; align-items:center; flex:0 0 auto; }
     .legend-item { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--text-muted); }
     .legend-dot  { width:9px; height:9px; border-radius:2px; flex-shrink:0; }
     .legend-conflict { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--red); }
@@ -150,6 +153,8 @@
     .constraint-box.hours { background:var(--teal-light); border:1px solid var(--teal-mid); color:var(--teal-dark); }
     .constraint-box.warn  { background:var(--warn-light);  border:1px solid var(--warn-border); color:var(--warn-text); }
     .constraint-box strong { font-weight:700; display:block; margin-bottom:2px; }
+    .visit-block { margin-top:9px; padding-top:9px; border-top:1px solid var(--teal-mid); }
+    .sidebar > .panel { flex:0 0 auto; }
     .contact-row { display:flex; flex-direction:column; gap:3px; margin-top:6px; background:rgba(0,0,0,.04); border-radius:var(--radius-sm); padding:7px 10px; }
     .contact-name { font-weight:600; font-size:12px; }
     .contact-row a { color:inherit; font-weight:600; text-decoration:none; font-size:12px; }
@@ -209,10 +214,14 @@
     .empty-state { text-align:center; padding:2rem 0; color:var(--text-hint); font-size:13px; }
 
     @media (max-width:768px) {
-      .grid{grid-template-columns:1fr} .stats{grid-template-columns:repeat(2,1fr)}
-      header{padding:0 1rem} .container{padding:1rem}
+      body{ height:auto; overflow:auto; }
+      .container{ height:auto; overflow:visible; padding:1rem; }
+      .grid{ grid-template-columns:1fr; min-height:0; } .stats{grid-template-columns:repeat(2,1fr)}
+      header{padding:0 1rem}
       .source-pill span{display:none}
-      .sidebar{position:static;max-height:none;}
+      .sidebar{ overflow:visible; }
+      .cal-col .days{ grid-auto-rows:auto; }
+      .day{ min-height:84px; }
     }
   </style>
 </head>
@@ -247,7 +256,7 @@
 
   <div class="grid">
     <!-- LEFT -->
-    <div>
+    <div class="cal-col">
       <div class="cal-header">
         <div class="cal-month" id="cal-title"></div>
         <div class="cal-nav">
@@ -283,65 +292,61 @@
         <div id="detail-list"><div class="empty-state">กรุณาเลือกวันที่ในปฏิทิน</div></div>
       </div>
 
-    </div>
-  </div>
+      <!-- service info -->
+      <div class="panel">
+        <div class="panel-title">บริการนำชม</div>
 
-  <!-- ── INFO BAR (full width, below calendar) ── -->
-  <div class="info-bar">
-    <!-- hours -->
-    <div class="constraint-box hours info-col">
-      <strong>🕐 เวลาทำการ</strong>
-      วันจันทร์ – วันศุกร์<br>08:30 – 16:30 น.<br>
-      <span style="font-size:11px;opacity:.85">(ปิดทำการเสาร์ อาทิตย์ และวันหยุดนักขัตฤกษ์)</span>
-    </div>
-
-    <!-- visit request -->
-    <div class="constraint-box warn info-col">
-      <strong>🏛️ ต้องการเยี่ยมชม</strong>
-      ดูรายละเอียดและติดต่อนัดหมายล่วงหน้าได้ที่หน้าเว็บสำนักหอสมุด
-      <a class="visit-btn" href="https://www.lib.ku.ac.th/2024/article/view/744" target="_blank" rel="noopener noreferrer">
-        🔗 ดูรายละเอียด / ขอเข้าเยี่ยมชม
-      </a>
-      <div class="contact-row">
-        <span class="contact-name">👩‍💼 คุณสุภัทรา นวชินกุล</span>
-        <a href="tel:0816271027">📱 081-627-1027</a>
-      </div>
-    </div>
-
-    <!-- services -->
-    <div class="svc-card info-col">
-      <div class="panel-title">สถานที่ให้บริการ</div>
-      <div class="service-item">
-        <div class="service-icon" style="background:var(--teal-light)">📚</div>
-        <div>
-          <div class="service-name">สำนักหอสมุด</div>
-          <div class="service-meta">สูงสุด 30 คน</div>
-          <span class="slot-badge" style="background:var(--teal-light);color:var(--teal-dark)">08:30 – 12:00 น.</span>
+        <!-- hours + visit (merged) -->
+        <div class="constraint-box hours">
+          <strong>🕐 เวลาทำการ</strong>
+          วันจันทร์ – วันศุกร์ · 08:30 – 16:30 น.<br>
+          <span style="font-size:11px;opacity:.85">(ปิดทำการเสาร์ อาทิตย์ และวันหยุดนักขัตฤกษ์)</span>
+          <div class="visit-block">
+            <strong>🏛️ ต้องการเยี่ยมชม</strong>
+            ดูรายละเอียดและติดต่อนัดหมายล่วงหน้าได้ที่หน้าเว็บสำนักหอสมุด
+            <a class="visit-btn" href="https://www.lib.ku.ac.th/2024/article/view/744" target="_blank" rel="noopener noreferrer">
+              🔗 ดูรายละเอียด / ขอเข้าเยี่ยมชม
+            </a>
+            <div class="contact-row">
+              <span class="contact-name">👩‍💼 คุณสุภัทรา นวชินกุล</span>
+              <a href="tel:0816271027">📱 081-627-1027</a>
+            </div>
+          </div>
         </div>
-      </div>
-      <div class="service-item">
-        <div class="service-icon" style="background:var(--amber-light)">🏛️</div>
-        <div>
-          <div class="service-name">หอประวัติมหาวิทยาลัยเกษตรศาสตร์</div>
-          <div class="service-meta">สูงสุด 20 คน</div>
-          <span class="slot-badge" style="background:var(--amber-light);color:var(--amber)">13:00 – 16:30 น.</span>
-        </div>
-      </div>
-    </div>
 
-    <!-- consecutive booking info -->
-    <div class="consec-card info-col">
-      <strong>🔄 การจองต่อเนื่อง</strong>
-      จองได้ทั้งสองสถานที่ในวันเดียวกัน เยี่ยมชมต่อเนื่องได้ทั้งสองลำดับ
-      <div class="consec-flow">
-        <span class="consec-step">📚 สำนักหอสมุด</span>
-        <span class="consec-arrow">→</span>
-        <span class="consec-step">🏛️ หอประวัติ</span>
-      </div>
-      <div class="consec-flow" style="margin-top:4px">
-        <span class="consec-step">🏛️ หอประวัติ</span>
-        <span class="consec-arrow">→</span>
-        <span class="consec-step">📚 สำนักหอสมุด</span>
+        <!-- services -->
+        <div class="service-item">
+          <div class="service-icon" style="background:var(--teal-light)">📚</div>
+          <div>
+            <div class="service-name">สำนักหอสมุด</div>
+            <div class="service-meta">สูงสุด 30 คน</div>
+            <span class="slot-badge" style="background:var(--teal-light);color:var(--teal-dark)">08:30 – 12:00 น.</span>
+          </div>
+        </div>
+        <div class="service-item">
+          <div class="service-icon" style="background:var(--amber-light)">🏛️</div>
+          <div>
+            <div class="service-name">หอประวัติมหาวิทยาลัยเกษตรศาสตร์</div>
+            <div class="service-meta">สูงสุด 20 คน</div>
+            <span class="slot-badge" style="background:var(--amber-light);color:var(--amber)">13:00 – 16:30 น.</span>
+          </div>
+        </div>
+
+        <!-- consecutive booking info -->
+        <div class="consec-card">
+          <strong>🔄 การจองต่อเนื่อง</strong>
+          จองได้ทั้งสองสถานที่ในวันเดียวกัน เยี่ยมชมต่อเนื่องได้ทั้งสองลำดับ
+          <div class="consec-flow">
+            <span class="consec-step">📚 สำนักหอสมุด</span>
+            <span class="consec-arrow">→</span>
+            <span class="consec-step">🏛️ หอประวัติ</span>
+          </div>
+          <div class="consec-flow" style="margin-top:4px">
+            <span class="consec-step">🏛️ หอประวัติ</span>
+            <span class="consec-arrow">→</span>
+            <span class="consec-step">📚 สำนักหอสมุด</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
