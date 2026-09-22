@@ -401,36 +401,51 @@ function rng(seed){ let s=seed; return ()=>{ s=(s*1664525+1013904223)&0xffffffff
 function isWeekend(y,m,d){ const dow=new Date(y,m,d).getDay(); return dow===0||dow===6; }
 
 /* ── generate mock data (weekdays only) ── */
-function generateBookings(){
-  bookings={};
-  const r=rng(202504);
-  const now=new Date();
-  for(let mo=-1;mo<=2;mo++){
-    const ref =new Date(now.getFullYear(),now.getMonth()+mo,1);
-    const days=new Date(ref.getFullYear(),ref.getMonth()+1,0).getDate();
-    for(let day=1;day<=days;day++){
-      /* skip weekends */
-      if(isWeekend(ref.getFullYear(),ref.getMonth(),day)){ r(); continue; }
-      if(r()>0.60) continue;
-      const key =`${ref.getFullYear()}-${ref.getMonth()}-${day}`;
-      const list=[];
+/* ══════════════════════════════════════════════════════════
+   เชื่อมข้อมูลจริงจาก Google Form / Google Sheet
+   วาง URL ของ Apps Script Web App (ลงท้าย /exec) ตรงนี้
+   ถ้ายังไม่ได้ตั้งค่า ปฏิทินจะว่างไว้ก่อน
+   ══════════════════════════════════════════════════════════ */
+const DATA_URL = 'https://script.google.com/macros/s/AKfycbwguQEUcYyq3mqLzT5xXqyyZtz_yS1bn_RHWSFdqG_cWudJi2FsrZIK3Ah7nCrA2sIS/exec'; // ← URL เว็บแอป
+
+async function loadBookings(){
+  bookings = {};
+  if(!DATA_URL){ renderCal(); return; }   // ยังไม่ได้ตั้งค่า → ปฏิทินว่าง
+  try{
+    const res  = await fetch(DATA_URL, { cache:'no-store' });
+    const rows = await res.json();        // [{date,name,pax,btId,status}, ...]
+    const byId = Object.fromEntries(BOOKING_TYPES.map(b=>[b.id,b]));
+
+    /* จัดกลุ่มตามวันที่ */
+    const grouped = {};
+    rows.forEach(r=>{
+      const bt = byId[r.btId] || byId['single-lib'];
+      const [Y,M,D] = String(r.date).split('-').map(Number);   // "YYYY-MM-DD"
+      if(!Y||!M||!D) return;
+      const key = `${Y}-${M-1}-${D}`;                          // เดือนเป็น 0-11
+      (grouped[key] = grouped[key] || []).push({
+        name:r.name, pax:Number(r.pax)||1, status:r.status||'pending',
+        time:r.time||'', note:r.note||'', bt
+      });
+    });
+
+    /* คำนวณการทับซ้อน (รายการที่ยกเลิกไม่นับว่าจองช่วงเวลานั้น) */
+    Object.keys(grouped).forEach(key=>{
       const occupied={morning:false,afternoon:false};
-      const count=Math.floor(r()*3)+1;
-      for(let i=0;i<count;i++){
-        const bt    = BOOKING_TYPES[Math.floor(r()*BOOKING_TYPES.length)];
-        const slots = slotsOf(bt);
-        const conflict = slots.some(s=>occupied[s]);
-        list.push({
-          name:    NAMES[Math.floor(r()*NAMES.length)],
-          pax:     PAXS[Math.floor(r()*PAXS.length)],
-          status:  STATUSES[Math.floor(r()*STATUSES.length)],
-          bt, conflict
-        });
-        if(!conflict) slots.forEach(s=>occupied[s]=true);
-      }
-      bookings[key]=list;
-    }
+      grouped[key].forEach(b=>{
+        if(b.status==='cancelled'){ b.conflict=false; return; }
+        const slots = slotsOf(b.bt);
+        b.conflict = slots.some(s=>occupied[s]);
+        if(!b.conflict) slots.forEach(s=>occupied[s]=true);
+      });
+    });
+
+    bookings = grouped;
+  }catch(e){
+    console.error('โหลดข้อมูลจาก Google Sheet ไม่สำเร็จ:', e);
+    bookings = {};
   }
+  renderCal();
 }
 
 /* ── calendar render ── */
@@ -531,13 +546,21 @@ function showDetail(key,d,m,y){
 
     if(b.bt.isConsec){
       html+=`<div class="consec-timeline">`;
-      b.bt.slots.forEach((sl,idx)=>{
-        if(idx>0) html+=`<div class="timeline-line"></div>`;
-        html+=`<div class="timeline-row"><div class="timeline-dot" style="background:${idx===0?'#7c3aed':'#a78bfa'}"></div><span>${sl.svc}</span><span class="dot-sep">·</span><span>${sl.time}</span></div>`;
-      });
+      if(b.note){
+        String(b.note).split(/\r?\n/).map(s=>s.trim()).filter(Boolean).forEach((ln,idx)=>{
+          if(idx>0) html+=`<div class="timeline-line"></div>`;
+          html+=`<div class="timeline-row"><div class="timeline-dot" style="background:${idx===0?'#7c3aed':'#a78bfa'}"></div><span>${ln}</span></div>`;
+        });
+      } else {
+        b.bt.slots.forEach((sl,idx)=>{
+          if(idx>0) html+=`<div class="timeline-line"></div>`;
+          const t=(b.time&&idx===0)?(b.time+' น.'):sl.time;
+          html+=`<div class="timeline-row"><div class="timeline-dot" style="background:${idx===0?'#7c3aed':'#a78bfa'}"></div><span>${sl.svc}</span><span class="dot-sep">·</span><span>${t}</span></div>`;
+        });
+      }
       html+=`</div>`;
     } else {
-      html+=`<div class="booking-meta">${b.bt.slots[0].time}</div>`;
+      html+=`<div class="booking-meta">${b.time ? ('เวลา '+b.time+' น.') : b.bt.slots[0].time}</div>`;
     }
     if(!b.bt.isConsec&&b.status!=='confirmed'){
       html+=`<div class="booking-meta" style="margin-top:2px;font-size:10px;color:${b.status==='pending'?'var(--amber)':'var(--red)'}">
@@ -569,8 +592,8 @@ function changeMonth(delta){
   renderCal();
 }
 
-generateBookings();
-renderCal();
+renderCal();     // แสดงปฏิทินว่างทันที
+loadBookings();  // แล้วดึงข้อมูลจริงมาเติม + render ใหม่
 </script>
 </body>
 </html>
