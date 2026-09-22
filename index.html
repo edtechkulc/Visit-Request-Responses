@@ -77,6 +77,16 @@
     .sidebar::-webkit-scrollbar { width:4px; }
     .sidebar::-webkit-scrollbar-thumb { background:var(--border-strong); border-radius:4px; }
 
+    /* ── INFO BAR (full width, below calendar) ── */
+    .info-bar { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-top:18px; align-items:stretch; }
+    .info-col { margin:0; height:100%; }
+    .constraint-box.info-col { margin-bottom:0; }
+    .consec-card.info-col { margin-top:0; }
+    .svc-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); padding:12px 14px; }
+    .svc-card .service-item:first-of-type { padding-top:0; }
+    @media (max-width:1100px){ .info-bar{ grid-template-columns:repeat(2,1fr); } }
+    @media (max-width:600px){ .info-bar{ grid-template-columns:1fr; } }
+
     /* ── STATS ── */
     .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:16px; }
     .stat-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); padding:14px 16px; }
@@ -273,63 +283,65 @@
         <div id="detail-list"><div class="empty-state">กรุณาเลือกวันที่ในปฏิทิน</div></div>
       </div>
 
-      <!-- service info -->
-      <div class="panel">
-        <div class="panel-title">บริการนำชม</div>
+    </div>
+  </div>
 
-        <!-- hours constraint -->
-        <div class="constraint-box hours">
-          <strong>🕐 เวลาทำการ</strong>
-          วันจันทร์ – วันศุกร์ · 08:30 – 16:30 น.<br>
-          (ปิดทำการวันเสาร์ อาทิตย์ และวันหยุดนักขัตฤกษ์)
-        </div>
+  <!-- ── INFO BAR (full width, below calendar) ── -->
+  <div class="info-bar">
+    <!-- hours -->
+    <div class="constraint-box hours info-col">
+      <strong>🕐 เวลาทำการ</strong>
+      วันจันทร์ – วันศุกร์<br>08:30 – 16:30 น.<br>
+      <span style="font-size:11px;opacity:.85">(ปิดทำการเสาร์ อาทิตย์ และวันหยุดนักขัตฤกษ์)</span>
+    </div>
 
-        <!-- visit request -->
-        <div class="constraint-box warn">
-          <strong>🏛️ ต้องการเยี่ยมชม</strong>
-          ดูรายละเอียดการเข้าเยี่ยมชม เวลาทำการ และติดต่อนัดหมายล่วงหน้าได้ที่หน้าเว็บสำนักหอสมุด
-          <a class="visit-btn" href="https://www.lib.ku.ac.th/2024/article/view/744" target="_blank" rel="noopener noreferrer">
-            🔗 ดูรายละเอียด / ขอเข้าเยี่ยมชม
-          </a>
-          <div class="contact-row">
-            <span class="contact-name">👩‍💼 คุณสุภัทรา นวชินกุล</span>
-            <a href="tel:0816271027">📱 081-627-1027</a>
-          </div>
-        </div>
+    <!-- visit request -->
+    <div class="constraint-box warn info-col">
+      <strong>🏛️ ต้องการเยี่ยมชม</strong>
+      ดูรายละเอียดและติดต่อนัดหมายล่วงหน้าได้ที่หน้าเว็บสำนักหอสมุด
+      <a class="visit-btn" href="https://www.lib.ku.ac.th/2024/article/view/744" target="_blank" rel="noopener noreferrer">
+        🔗 ดูรายละเอียด / ขอเข้าเยี่ยมชม
+      </a>
+      <div class="contact-row">
+        <span class="contact-name">👩‍💼 คุณสุภัทรา นวชินกุล</span>
+        <a href="tel:0816271027">📱 081-627-1027</a>
+      </div>
+    </div>
 
-        <!-- services -->
-        <div class="service-item">
-          <div class="service-icon" style="background:var(--teal-light)">📚</div>
-          <div>
-            <div class="service-name">สำนักหอสมุด</div>
-            <div class="service-meta">สูงสุด 30 คน</div>
-            <span class="slot-badge" style="background:var(--teal-light);color:var(--teal-dark)">08:30 – 12:00 น.</span>
-          </div>
+    <!-- services -->
+    <div class="svc-card info-col">
+      <div class="panel-title">สถานที่ให้บริการ</div>
+      <div class="service-item">
+        <div class="service-icon" style="background:var(--teal-light)">📚</div>
+        <div>
+          <div class="service-name">สำนักหอสมุด</div>
+          <div class="service-meta">สูงสุด 30 คน</div>
+          <span class="slot-badge" style="background:var(--teal-light);color:var(--teal-dark)">08:30 – 12:00 น.</span>
         </div>
-        <div class="service-item">
-          <div class="service-icon" style="background:var(--amber-light)">🏛️</div>
-          <div>
-            <div class="service-name">หอประวัติมหาวิทยาลัยเกษตรศาสตร์</div>
-            <div class="service-meta">สูงสุด 20 คน</div>
-            <span class="slot-badge" style="background:var(--amber-light);color:var(--amber)">13:00 – 16:30 น.</span>
-          </div>
+      </div>
+      <div class="service-item">
+        <div class="service-icon" style="background:var(--amber-light)">🏛️</div>
+        <div>
+          <div class="service-name">หอประวัติมหาวิทยาลัยเกษตรศาสตร์</div>
+          <div class="service-meta">สูงสุด 20 คน</div>
+          <span class="slot-badge" style="background:var(--amber-light);color:var(--amber)">13:00 – 16:30 น.</span>
         </div>
+      </div>
+    </div>
 
-        <!-- consecutive booking info -->
-        <div class="consec-card">
-          <strong>🔄 การจองต่อเนื่อง</strong>
-          สามารถจองได้ทั้งสองสถานที่ในวันเดียวกัน โดยเยี่ยมชมต่อเนื่องกันได้ทั้งสองลำดับ
-          <div class="consec-flow">
-            <span class="consec-step">📚 สำนักหอสมุด</span>
-            <span class="consec-arrow">→</span>
-            <span class="consec-step">🏛️ หอประวัติ</span>
-          </div>
-          <div class="consec-flow" style="margin-top:4px">
-            <span class="consec-step">🏛️ หอประวัติ</span>
-            <span class="consec-arrow">→</span>
-            <span class="consec-step">📚 สำนักหอสมุด</span>
-          </div>
-        </div>
+    <!-- consecutive booking info -->
+    <div class="consec-card info-col">
+      <strong>🔄 การจองต่อเนื่อง</strong>
+      จองได้ทั้งสองสถานที่ในวันเดียวกัน เยี่ยมชมต่อเนื่องได้ทั้งสองลำดับ
+      <div class="consec-flow">
+        <span class="consec-step">📚 สำนักหอสมุด</span>
+        <span class="consec-arrow">→</span>
+        <span class="consec-step">🏛️ หอประวัติ</span>
+      </div>
+      <div class="consec-flow" style="margin-top:4px">
+        <span class="consec-step">🏛️ หอประวัติ</span>
+        <span class="consec-arrow">→</span>
+        <span class="consec-step">📚 สำนักหอสมุด</span>
       </div>
     </div>
   </div>
