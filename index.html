@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="th">
 <head>
   <meta charset="UTF-8" />
@@ -135,6 +135,7 @@
     .chip-pending   { background:var(--amber-light);  color:var(--amber); }
     .chip-cancelled { background:var(--red-light);    color:var(--red); }
     .chip-consec    { background:var(--purple-light); color:var(--purple); }
+    .chip-consec-mark { border-left:3px solid var(--purple); padding-left:4px; }
     .chip-more { font-size:10px; color:var(--text-hint); padding:1px 4px; }
 
     .legend { display:flex; gap:12px; flex-wrap:wrap; margin-top:8px; align-items:center; flex:0 0 auto; }
@@ -196,6 +197,7 @@
     .booking-row { display:flex; align-items:flex-start; justify-content:space-between; gap:6px; margin-bottom:2px; }
     .booking-name { font-size:13px; font-weight:600; color:var(--text); }
     .badge { font-size:10px; font-weight:600; padding:2px 8px; border-radius:20px; white-space:nowrap; flex-shrink:0; }
+    .badge-group { display:flex; gap:4px; flex-wrap:wrap; justify-content:flex-end; flex-shrink:0; }
     .badge-confirmed { background:var(--teal-light);   color:var(--teal-dark); }
     .badge-pending   { background:var(--amber-light);  color:var(--amber); }
     .badge-cancelled { background:var(--red-light);    color:var(--red); }
@@ -395,7 +397,6 @@ function overCap(b){
 /* คลาสสีของชิปบนปฏิทิน: อิงสถานะจริง (ยกเลิก→แดง, ยืนยัน→เขียว, รอ→เหลือง), ต่อเนื่อง→ม่วง */
 function chipClassOf(b){
   if(b.status==='cancelled') return 'chip-cancelled';
-  if(b.bt.isConsec)          return 'chip-consec';
   if(b.status==='confirmed') return 'chip-confirmed';
   return 'chip-pending';
 }
@@ -505,7 +506,7 @@ function makeDay(y,m,d,other){
     if(bks.some(b=>b.conflict)) cell.classList.add('has-conflict');
     bks.slice(0,2).forEach(b=>{
       const chip=document.createElement('div');
-      chip.className=`chip ${b.conflict?'chip-cancelled':chipClassOf(b)}`;
+      chip.className=`chip ${b.conflict?'chip-cancelled':chipClassOf(b)}${b.bt.isConsec?' chip-consec-mark':''}`;
       chip.textContent=(overCap(b).over?'⚠️ ':'')+b.bt.chipLabel;
       cell.appendChild(chip);
     });
@@ -552,12 +553,15 @@ function showDetail(key,d,m,y){
   }
 
   bks.forEach(b=>{
-    const badgeClass=b.conflict?'badge-cancelled':b.bt.isConsec?'badge-consec':`badge-${b.status}`;
-    const badgeLabel=b.conflict?'ทับซ้อน':b.bt.isConsec?'ต่อเนื่อง':STATUS_TH[b.status];
+    const badgeClass=b.conflict?'badge-cancelled':`badge-${b.status}`;
+    const badgeLabel=b.conflict?'ทับซ้อน':STATUS_TH[b.status];
     html+=`<div class="booking-item">
       <div class="booking-row">
         <div class="booking-name">${b.name}</div>
-        <span class="badge ${badgeClass}">${badgeLabel}</span>
+        <div class="badge-group">
+          <span class="badge ${badgeClass}">${badgeLabel}</span>
+          ${b.bt.isConsec?'<span class="badge badge-consec">🔄 ต่อเนื่อง</span>':''}
+        </div>
       </div>
       <div class="booking-meta" style="margin-bottom:${b.bt.isConsec?'6px':'0'}">${b.pax} คน<span class="dot-sep">·</span>${b.bt.label}</div>`;
 
@@ -583,7 +587,7 @@ function showDetail(key,d,m,y){
     if(oc.over){
       html+=`<div class="cap-warn">⚠️ ${oc.msg}</div>`;
     }
-    if(!b.bt.isConsec&&b.status!=='confirmed'){
+    if(b.status!=='confirmed'){
       html+=`<div class="booking-meta" style="margin-top:2px;font-size:10px;color:${b.status==='pending'?'var(--amber)':'var(--red)'}">
         ${b.status==='pending'?'รอการยืนยันจากเจ้าหน้าที่':'การจองถูกยกเลิก'}
       </div>`;
