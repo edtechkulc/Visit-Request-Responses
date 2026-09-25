@@ -211,6 +211,7 @@
 
     .conflict-alert { background:var(--red-light); border:1px solid var(--red-mid); border-radius:var(--radius-md); padding:9px 12px; font-size:12px; color:var(--red); margin-bottom:10px; line-height:1.5; }
     .conflict-alert strong { font-weight:700; display:block; margin-bottom:1px; }
+    .cap-warn { background:var(--warn-light); border:1px solid var(--warn-border); color:var(--warn-text); border-radius:var(--radius-sm); padding:5px 8px; font-size:11px; margin-top:5px; line-height:1.4; font-weight:600; }
     .empty-state { text-align:center; padding:2rem 0; color:var(--text-hint); font-size:13px; }
 
     @media (max-width:768px) {
@@ -307,7 +308,6 @@
             <a class="visit-btn" href="https://www.lib.ku.ac.th/2024/article/view/744" target="_blank" rel="noopener noreferrer">
               🔗 ดูรายละเอียด / ขอเข้าเยี่ยมชม
             </a>
-            
           </div>
         </div>
 
@@ -377,6 +377,27 @@ function slotsOf(bt) {
   if (bt.id==='single-hist')     return ['afternoon'];
   if (bt.id.startsWith('consec')) return ['morning','afternoon'];
   return [];
+}
+
+/* ── ความจุแต่ละสถานที่ (คน) ── */
+const CAPS = { lib:30, hist:20 };   // สำนักหอสมุด 30 · หอประวัติ 20
+
+/* ตรวจว่าจำนวนคนเกินความจุของสถานที่ที่จองหรือไม่ */
+function overCap(b){
+  const id=b.bt.id, pax=Number(b.pax)||0, ex=[];
+  const usesLib  = id==='single-lib'  || id.indexOf('consec')===0;
+  const usesHist = id==='single-hist' || id.indexOf('consec')===0;
+  if(usesLib  && pax>CAPS.lib)  ex.push(`สำนักหอสมุด (รับ ${CAPS.lib} คน)`);
+  if(usesHist && pax>CAPS.hist) ex.push(`หอประวัติ (รับ ${CAPS.hist} คน)`);
+  return ex.length ? { over:true, msg:`เกินความจุ ${ex.join(' และ ')} — จองมา ${pax} คน` } : { over:false, msg:'' };
+}
+
+/* คลาสสีของชิปบนปฏิทิน: อิงสถานะจริง (ยกเลิก→แดง, ยืนยัน→เขียว, รอ→เหลือง), ต่อเนื่อง→ม่วง */
+function chipClassOf(b){
+  if(b.status==='cancelled') return 'chip-cancelled';
+  if(b.bt.isConsec)          return 'chip-consec';
+  if(b.status==='confirmed') return 'chip-confirmed';
+  return 'chip-pending';
 }
 
 const NAMES    = ['สมชาย ใจดี','Alice Johnson','Tanaka Hiroshi','ปิยะ รักเที่ยว','Marco Rossi','Sarah Williams','นภา สุขสันต์','David Chen','อรุณ วงศ์ดี','Emma Müller','สุดา แสงเทียน','Raj Patel'];
@@ -484,8 +505,8 @@ function makeDay(y,m,d,other){
     if(bks.some(b=>b.conflict)) cell.classList.add('has-conflict');
     bks.slice(0,2).forEach(b=>{
       const chip=document.createElement('div');
-      chip.className=`chip ${b.conflict?'chip-cancelled':b.bt.chipClass}`;
-      chip.textContent=b.bt.chipLabel;
+      chip.className=`chip ${b.conflict?'chip-cancelled':chipClassOf(b)}`;
+      chip.textContent=(overCap(b).over?'⚠️ ':'')+b.bt.chipLabel;
       cell.appendChild(chip);
     });
     if(bks.length>2){const m2=document.createElement('div');m2.className='chip-more';m2.textContent=`+${bks.length-2} อื่นๆ`;cell.appendChild(m2);}
@@ -510,9 +531,8 @@ function showDetailClosed(d,m,y){
       <div class="closed-icon">🚫</div>
       <p>วัน${dowTH}ไม่เปิดให้บริการนำชม<br>
       <span style="font-size:12px">เปิดทำการวันจันทร์ – ศุกร์ เวลา 08:30 – 16:30 น.</span></p>
-      <p style="margin-top:10px;font-size:12px;color:var(--text-muted)">หากต้องการเยี่ยมชมนอกเวลาทำการ ติดต่อ</p>
-      <p style="font-size:13px;font-weight:600;margin-top:4px">คุณสุภัทรา นวชินกุล</p>
-      <a class="phone-link" href="tel:0816271027">📱 081-627-1027</a>
+      <p style="margin-top:10px;font-size:12px;color:var(--text-muted)">ดูรายละเอียดและติดต่อนัดหมายล่วงหน้าได้ที่หน้าเว็บสำนักหอสมุด</p>
+      <a class="phone-link" href="https://www.lib.ku.ac.th/2024/article/view/744" target="_blank" rel="noopener noreferrer">🔗 ดูรายละเอียด / ขอเข้าเยี่ยมชม</a>
     </div>`;
 }
 
@@ -558,6 +578,10 @@ function showDetail(key,d,m,y){
       html+=`</div>`;
     } else {
       html+=`<div class="booking-meta">${b.time ? ('เวลา '+b.time+' น.') : b.bt.slots[0].time}</div>`;
+    }
+    const oc=overCap(b);
+    if(oc.over){
+      html+=`<div class="cap-warn">⚠️ ${oc.msg}</div>`;
     }
     if(!b.bt.isConsec&&b.status!=='confirmed'){
       html+=`<div class="booking-meta" style="margin-top:2px;font-size:10px;color:${b.status==='pending'?'var(--amber)':'var(--red)'}">
